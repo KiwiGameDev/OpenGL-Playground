@@ -3,72 +3,35 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader.h"
+
 #include <iostream>
 #include <string>
 #include <fstream>
 
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "tiny_obj_loader.h"
-
 #include "ShaderProgramAttachment.h"
+#include "Vector3.h"
+#include "GameObject.h"
+#include "Helpers.h"
 
 #define WIDTH 600
 #define HEIGHT 600
 
 GLuint renderingProgram;
 
-std::string basepath = "assets/";
-std::vector<std::string> inputFiles = {
-	basepath + "sphere.obj",
-	basepath + "teapot.obj",
-	basepath + "bunny.obj",
-};
-
-struct Vector3
-{
-	float x;
-	float y;
-	float z;
-
-	Vector3()
-		: x(0), y(0), z(0) { }
-
-	Vector3(float x, float y, float z)
-		: x(x), y(y), z(z) { }
-
-	Vector3& operator+=(const Vector3& add)
-	{
-		this->x += add.x;
-		this->y += add.y;
-		this->z += add.z;
-		return *this;
-	}
-};
-
-struct GameObject
-{
-	GLuint vaoID;
-	glm::mat4 transform;
-	std::vector<Vector3> vertexPositions;
-	std::vector<Vector3> vertexNormals;
-	std::vector<Vector3> vertexColors;
-	std::vector<unsigned int> indices;
-
-	GameObject()
-	{
-		vaoID = -1;
-		transform = glm::mat4(1.0f);
-		vertexPositions = std::vector<Vector3>();
-		vertexColors = std::vector<Vector3>();
-		vertexNormals = std::vector<Vector3>();
-	}
-};
-
 std::vector<GameObject> gameObjects;
 
 void init(GLFWwindow* window)
 {
 	renderingProgram = createShaderProgram();
+
+	std::string basepath = "assets/";
+	std::vector<std::string> inputFiles = {
+		basepath + "sphere.obj",
+		basepath + "teapot.obj",
+		basepath + "bunny.obj",
+	};
 
 	for (std::string inputfile : inputFiles)
 	{
@@ -83,11 +46,13 @@ void init(GLFWwindow* window)
 		else
 			std::cout << "Loaded " << inputfile << " with shapes: " << tempShapes.size() << std::endl;
 
-		GameObject newGameObject;
-		for (const tinyobj::shape_t& shape : tempShapes)
+		for (const auto& shape : tempShapes)
 		{
+			gameObjects.emplace_back();
+			GameObject& newGameObject = gameObjects.back();
 			const auto& mesh = shape.mesh;
 
+			// Positions
 			const auto& pos = mesh.positions;
 			for (int i = 0; i < pos.size();)
 			{
@@ -97,6 +62,7 @@ void init(GLFWwindow* window)
 				newGameObject.vertexPositions.emplace_back(x, y, z);
 			}
 
+			// Normals
 			const auto& norm = mesh.normals;
 			for (int i = 0; i < norm.size();)
 			{
@@ -106,29 +72,22 @@ void init(GLFWwindow* window)
 				newGameObject.vertexNormals.emplace_back(x, y, z);
 			}
 
+			// Color
+			Vector3f baseColor = Vector3f(randf(), randf(), randf());
+			newGameObject.vertexColors = newGameObject.vertexPositions;
+			for (auto& color : newGameObject.vertexColors)
+				color = baseColor;
+
+			// Indices
 			const auto& indices = mesh.indices;
 			for (int i = 0; i < indices.size();)
-				newGameObject.indices.emplace_back(indices[i++]);
+			{
+				unsigned int a = indices[i++];
+				unsigned int b = indices[i++];
+				unsigned int c = indices[i++];
+				newGameObject.indices.emplace_back(a, b, c);
+			}
 		}
-
-		gameObjects.push_back(newGameObject);
-	}
-
-	for (int i = 0; i < gameObjects.size(); i++)
-	{
-		GameObject& gameObject = gameObjects[i];
-
-		Vector3 baseColor;
-		if (i == 0)
-			baseColor = { 0.1f, 0.4f, 0.69f };
-		else if (i == 1)
-			baseColor = { 0.6f, 0.1f, 0.6f };
-		else
-			baseColor = { 0.2f, 0.7f, 0.1f };
-
-		gameObject.vertexColors = gameObject.vertexPositions;
-		for (auto& color : gameObject.vertexColors)
-			color = baseColor;
 	}
 
 	for (GameObject& gameObject : gameObjects)
@@ -141,7 +100,7 @@ void init(GLFWwindow* window)
 		const auto& positions = gameObject.vertexPositions;
 		glGenBuffers(1, &bufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-		glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(Vector3), &positions[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(Vector3f), &positions[0], GL_STATIC_DRAW);
 		GLint vertexAttrib = glGetAttribLocation(renderingProgram, "v_vertex");
 		glEnableVertexAttribArray(vertexAttrib);
 		glVertexAttribPointer(vertexAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -149,7 +108,7 @@ void init(GLFWwindow* window)
 		const auto& colors = gameObject.vertexColors;
 		glGenBuffers(1, &bufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-		glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(Vector3), &colors[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(Vector3f), &colors[0], GL_STATIC_DRAW);
 		GLint colorAttrib = glGetAttribLocation(renderingProgram, "v_color");
 		glEnableVertexAttribArray(colorAttrib);
 		glVertexAttribPointer(colorAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -157,7 +116,7 @@ void init(GLFWwindow* window)
 		const auto& normals = gameObject.vertexNormals;
 		glGenBuffers(1, &bufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-		glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(Vector3), &normals[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(Vector3f), &normals[0], GL_STATIC_DRAW);
 		GLint normalAttrib = glGetAttribLocation(renderingProgram, "v_normal");
 		glEnableVertexAttribArray(normalAttrib);
 		glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -165,7 +124,7 @@ void init(GLFWwindow* window)
 		const auto& indices = gameObject.indices;
 		glGenBuffers(1, &bufferID);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferID);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Vector3u), &indices[0], GL_STATIC_DRAW);
 
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -181,7 +140,7 @@ void display(GLFWwindow* window, double currentTime)
 	glUseProgram(renderingProgram);
 
 	// Time
-	float time = glfwGetTime();
+	float time = currentTime;
 	GLint timeLoc = glGetUniformLocation(renderingProgram, "time");
 	glUniform1f(timeLoc, time);
 
@@ -196,41 +155,13 @@ void display(GLFWwindow* window, double currentTime)
 		glUseProgram(renderingProgram);
 
 		// Transform
-		GLint transformLoc = glGetUniformLocation(renderingProgram, "transform");
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(gameObject.transform));
+		GLint modelMatLoc = glGetUniformLocation(renderingProgram, "u_model");
+		glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, glm::value_ptr(gameObject.modelMat));
 
-		glDrawElements(GL_TRIANGLES, gameObject.indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, gameObject.indices.size() * 3, GL_UNSIGNED_INT, 0);
 
 		glBindVertexArray(0);
 		glUseProgram(0);
-	}
-}
-
-void input(GLFWwindow* window)
-{
-	const float ADD = 0.03f;
-	glm::vec2 move = glm::vec2();
-
-	if (glfwGetKey(window, GLFW_KEY_W))
-		move.y += ADD;
-	if (glfwGetKey(window, GLFW_KEY_S))
-		move.y -= ADD;
-	if (glfwGetKey(window, GLFW_KEY_A))
-		move.x -= ADD;
-	if (glfwGetKey(window, GLFW_KEY_D))
-		move.x += ADD;
-
-	for (int i = 0; i < gameObjects.size(); i++)
-	{
-		GameObject& gameObject = gameObjects[i];
-		glm::mat4& transform = gameObject.transform;
-
-		if (i == 0)
-			transform = glm::translate(transform, glm::vec3(move, 0));
-		else if (i == 1)
-			transform = glm::translate(transform, glm::vec3(move.y, move.x, 0));
-		else
-			transform = glm::translate(transform, glm::vec3(-move, 0));
 	}
 }
 
@@ -248,7 +179,6 @@ int main(void)
 	glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 	while (!glfwWindowShouldClose(window))
 	{
-		input(window);
 		display(window, glfwGetTime());
 		glfwSwapBuffers(window);
 		glfwPollEvents();

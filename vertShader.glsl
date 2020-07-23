@@ -7,14 +7,14 @@ in vec3 v_normal;
 out vec3 f_color;
 
 uniform float time;
-uniform mat4 transform;
+uniform mat4 u_model;
 uniform vec3 directionalLight;
 
 const float M_PI = 3.1415926535897932384626433832795;
 
 void main(void)
 {
-	gl_Position = transform * vec4(v_vertex, 1.0f);
+	gl_Position = u_model * vec4(v_vertex, 1.0f);
 	
 	// Color
 	vec3 cosPos = cos(v_vertex);
