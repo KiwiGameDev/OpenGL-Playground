@@ -152,18 +152,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Helpers.h" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="GameObject.h" />
-    <ClCompile Include="Vector3.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fragShader.glsl" />
     <None Include="vertShader.glsl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="gameobject.h" />
+    <ClInclude Include="helpers.h" />
     <ClInclude Include="ShaderProgramAttachment.h" />
     <ClInclude Include="tiny_obj_loader.h" />
+    <ClInclude Include="vector3.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

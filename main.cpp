@@ -11,9 +11,9 @@
 #include <fstream>
 
 #include "ShaderProgramAttachment.h"
-#include "Vector3.h"
-#include "GameObject.h"
-#include "Helpers.h"
+#include "vector3.h"
+#include "gameObject.h"
+#include "helpers.h"
 
 #define WIDTH 600
 #define HEIGHT 600
