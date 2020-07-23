@@ -24,19 +24,43 @@ std::vector<std::string> inputFiles = {
 	basepath + "bunny.obj",
 };
 
+struct Vector3
+{
+	float x;
+	float y;
+	float z;
+
+	Vector3()
+		: x(0), y(0), z(0) { }
+
+	Vector3(float x, float y, float z)
+		: x(x), y(y), z(z) { }
+
+	Vector3& operator+=(const Vector3& add)
+	{
+		this->x += add.x;
+		this->y += add.y;
+		this->z += add.z;
+		return *this;
+	}
+};
+
 struct GameObject
 {
 	GLuint vaoID;
 	glm::mat4 transform;
-	tinyobj::shape_t shape;
-	std::vector<glm::vec3> colors;
+	std::vector<Vector3> vertexPositions;
+	std::vector<Vector3> vertexNormals;
+	std::vector<Vector3> vertexColors;
+	std::vector<unsigned int> indices;
 
 	GameObject()
 	{
 		vaoID = -1;
 		transform = glm::mat4(1.0f);
-		shape = tinyobj::shape_t();
-		colors = std::vector<glm::vec3>();
+		vertexPositions = std::vector<Vector3>();
+		vertexColors = std::vector<Vector3>();
+		vertexNormals = std::vector<Vector3>();
 	}
 };
 
@@ -60,9 +84,32 @@ void init(GLFWwindow* window)
 			std::cout << "Loaded " << inputfile << " with shapes: " << tempShapes.size() << std::endl;
 
 		GameObject newGameObject;
-
 		for (const tinyobj::shape_t& shape : tempShapes)
-			newGameObject.shape = shape;
+		{
+			const auto& mesh = shape.mesh;
+
+			const auto& pos = mesh.positions;
+			for (int i = 0; i < pos.size();)
+			{
+				float x = pos[i++];
+				float y = pos[i++];
+				float z = pos[i++];
+				newGameObject.vertexPositions.emplace_back(x, y, z);
+			}
+
+			const auto& norm = mesh.normals;
+			for (int i = 0; i < norm.size();)
+			{
+				float x = norm[i++];
+				float y = norm[i++];
+				float z = norm[i++];
+				newGameObject.vertexNormals.emplace_back(x, y, z);
+			}
+
+			const auto& indices = mesh.indices;
+			for (int i = 0; i < indices.size();)
+				newGameObject.indices.emplace_back(indices[i++]);
+		}
 
 		gameObjects.push_back(newGameObject);
 	}
@@ -71,7 +118,7 @@ void init(GLFWwindow* window)
 	{
 		GameObject& gameObject = gameObjects[i];
 
-		glm::vec3 baseColor;
+		Vector3 baseColor;
 		if (i == 0)
 			baseColor = { 0.1f, 0.4f, 0.69f };
 		else if (i == 1)
@@ -79,44 +126,43 @@ void init(GLFWwindow* window)
 		else
 			baseColor = { 0.2f, 0.7f, 0.1f };
 
-		gameObject.colors = std::vector<glm::vec3>(gameObject.shape.mesh.positions.size() / 3);
-		for (auto& color : gameObject.colors)
+		gameObject.vertexColors = gameObject.vertexPositions;
+		for (auto& color : gameObject.vertexColors)
 			color = baseColor;
 	}
 
 	for (GameObject& gameObject : gameObjects)
 	{
 		GLuint bufferID;
-		const auto& mesh = gameObject.shape.mesh;
 
 		glGenVertexArrays(1, &gameObject.vaoID);
 		glBindVertexArray(gameObject.vaoID);
 
-		const auto& positions = mesh.positions;
+		const auto& positions = gameObject.vertexPositions;
 		glGenBuffers(1, &bufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-		glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(float), &positions[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(Vector3), &positions[0], GL_STATIC_DRAW);
 		GLint vertexAttrib = glGetAttribLocation(renderingProgram, "v_vertex");
 		glEnableVertexAttribArray(vertexAttrib);
 		glVertexAttribPointer(vertexAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-		const auto& colors = gameObject.colors;
+		const auto& colors = gameObject.vertexColors;
 		glGenBuffers(1, &bufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-		glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec3::value_type) * 3, &colors[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(Vector3), &colors[0], GL_STATIC_DRAW);
 		GLint colorAttrib = glGetAttribLocation(renderingProgram, "v_color");
 		glEnableVertexAttribArray(colorAttrib);
 		glVertexAttribPointer(colorAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-		const auto& normals = mesh.normals;
+		const auto& normals = gameObject.vertexNormals;
 		glGenBuffers(1, &bufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-		glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(float), &normals[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(Vector3), &normals[0], GL_STATIC_DRAW);
 		GLint normalAttrib = glGetAttribLocation(renderingProgram, "v_normal");
 		glEnableVertexAttribArray(normalAttrib);
 		glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-		const auto& indices = mesh.indices;
+		const auto& indices = gameObject.indices;
 		glGenBuffers(1, &bufferID);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferID);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
@@ -153,7 +199,7 @@ void display(GLFWwindow* window, double currentTime)
 		GLint transformLoc = glGetUniformLocation(renderingProgram, "transform");
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(gameObject.transform));
 
-		glDrawElements(GL_TRIANGLES, gameObject.shape.mesh.indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, gameObject.indices.size(), GL_UNSIGNED_INT, 0);
 
 		glBindVertexArray(0);
 		glUseProgram(0);
@@ -162,16 +208,17 @@ void display(GLFWwindow* window, double currentTime)
 
 void input(GLFWwindow* window)
 {
+	const float ADD = 0.03f;
 	glm::vec2 move = glm::vec2();
 
 	if (glfwGetKey(window, GLFW_KEY_W))
-		move.y += 0.03;
+		move.y += ADD;
 	if (glfwGetKey(window, GLFW_KEY_S))
-		move.y -= 0.03;
+		move.y -= ADD;
 	if (glfwGetKey(window, GLFW_KEY_A))
-		move.x -= 0.03;
+		move.x -= ADD;
 	if (glfwGetKey(window, GLFW_KEY_D))
-		move.x += 0.03;
+		move.x += ADD;
 
 	for (int i = 0; i < gameObjects.size(); i++)
 	{
