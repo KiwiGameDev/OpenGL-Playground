@@ -15,7 +15,7 @@ struct GameObject
 	std::vector<Vector3f> vertexColors;
 	std::vector<Vector3u> indices;
 
-	glm::mat4 modelMat;
+	glm::mat4 model;
 	Vector3f position;
 	Vector3f velocity;
 	Vector3f rotation;
@@ -29,7 +29,7 @@ struct GameObject
 		vertexColors = std::vector<Vector3f>();
 		indices = std::vector<Vector3u>();
 
-		modelMat = glm::mat4(1.0f);
+		model = glm::mat4(1.0f);
 		position = Vector3f();
 		velocity = Vector3f();
 		rotation = Vector3f();

@@ -28,9 +28,9 @@ void init(GLFWwindow* window)
 
 	std::string basepath = "assets/";
 	std::vector<std::string> inputFiles = {
-		basepath + "sphere.obj",
+		//basepath + "sphere.obj",
 		basepath + "teapot.obj",
-		basepath + "bunny.obj",
+		//basepath + "bunny.obj",
 	};
 
 	for (std::string inputfile : inputFiles)
@@ -134,29 +134,34 @@ void init(GLFWwindow* window)
 
 void display(GLFWwindow* window, double currentTime)
 {
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glUseProgram(renderingProgram);
 
+	// Camera stuff
+	glm::mat4 view = glm::mat4(1.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
 	// Time
 	float time = currentTime;
-	GLuint timeLoc = glGetUniformLocation(renderingProgram, "time");
+	GLuint timeLoc = glGetUniformLocation(renderingProgram, "u_time");
 	glUniform1f(timeLoc, time);
 
 	// Directional Light
 	float directionalLight[3] = { 0, sin(time), cos(time) };
-	GLuint lightLoc = glGetUniformLocation(renderingProgram, "directionalLight");
+	GLuint lightLoc = glGetUniformLocation(renderingProgram, "u_directionalLight");
 	glUniform3fv(lightLoc, 1, directionalLight);
 
-	for (const GameObject& gameObject : gameObjects)
+	for (GameObject& gameObject : gameObjects)
 	{
 		glBindVertexArray(gameObject.vaoID);
 		glUseProgram(renderingProgram);
 
 		// Transform
-		GLuint modelMatLoc = glGetUniformLocation(renderingProgram, "u_model");
-		glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, glm::value_ptr(gameObject.modelMat));
+		glm::mat4 transform = projection * view * gameObject.model;
+		GLuint modelMatLoc = glGetUniformLocation(renderingProgram, "u_transform");
+		glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, glm::value_ptr(transform));
 
 		glDrawElements(GL_TRIANGLES, gameObject.indices.size() * 3, GL_UNSIGNED_INT, 0);
 
@@ -176,7 +181,9 @@ int main(void)
 
 	init(window);
 
+	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		display(window, glfwGetTime());
