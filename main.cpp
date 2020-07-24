@@ -141,12 +141,12 @@ void display(GLFWwindow* window, double currentTime)
 
 	// Time
 	float time = currentTime;
-	GLint timeLoc = glGetUniformLocation(renderingProgram, "time");
+	GLuint timeLoc = glGetUniformLocation(renderingProgram, "time");
 	glUniform1f(timeLoc, time);
 
 	// Directional Light
 	float directionalLight[3] = { 0, sin(time), cos(time) };
-	GLint lightLoc = glGetUniformLocation(renderingProgram, "directionalLight");
+	GLuint lightLoc = glGetUniformLocation(renderingProgram, "directionalLight");
 	glUniform3fv(lightLoc, 1, directionalLight);
 
 	for (const GameObject& gameObject : gameObjects)
@@ -155,7 +155,7 @@ void display(GLFWwindow* window, double currentTime)
 		glUseProgram(renderingProgram);
 
 		// Transform
-		GLint modelMatLoc = glGetUniformLocation(renderingProgram, "u_model");
+		GLuint modelMatLoc = glGetUniformLocation(renderingProgram, "u_model");
 		glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, glm::value_ptr(gameObject.modelMat));
 
 		glDrawElements(GL_TRIANGLES, gameObject.indices.size() * 3, GL_UNSIGNED_INT, 0);
