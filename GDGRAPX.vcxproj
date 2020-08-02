@@ -162,6 +162,7 @@
     <ClInclude Include="gameobject.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="ShaderProgramAttachment.h" />
+    <ClInclude Include="stb_image.h" />
     <ClInclude Include="tiny_obj_loader.h" />
     <ClInclude Include="vector3.h" />
   </ItemGroup>

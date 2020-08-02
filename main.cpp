@@ -3,8 +3,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "tiny_obj_loader.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 #include <iostream>
 #include <string>
@@ -26,69 +26,9 @@ void init(GLFWwindow* window)
 {
 	renderingProgram = createShaderProgram();
 
-	std::string basepath = "assets/";
-	std::vector<std::string> inputFiles = {
-		//basepath + "sphere.obj",
-		basepath + "teapot.obj",
-		//basepath + "bunny.obj",
-	};
 
-	for (std::string inputfile : inputFiles)
-	{
-		std::string err;
-		std::vector<tinyobj::shape_t> tempShapes;
-		std::vector<tinyobj::material_t> tempMaterials;
-
-		tinyobj::LoadObj(tempShapes, tempMaterials, err, inputfile.c_str(), basepath.c_str());
-
-		if (!err.empty())
-			std::cerr << err << std::endl;
-		else
-			std::cout << "Loaded " << inputfile << " with shapes: " << tempShapes.size() << std::endl;
-
-		for (const auto& shape : tempShapes)
-		{
-			gameObjects.emplace_back();
-			GameObject& newGameObject = gameObjects.back();
-			const auto& mesh = shape.mesh;
-
-			// Positions
-			const auto& pos = mesh.positions;
-			for (int i = 0; i < pos.size();)
-			{
-				float x = pos[i++];
-				float y = pos[i++];
-				float z = pos[i++];
-				newGameObject.vertexPositions.emplace_back(x, y, z);
-			}
-
-			// Normals
-			const auto& norm = mesh.normals;
-			for (int i = 0; i < norm.size();)
-			{
-				float x = norm[i++];
-				float y = norm[i++];
-				float z = norm[i++];
-				newGameObject.vertexNormals.emplace_back(x, y, z);
-			}
-
-			// Color
-			Vector3f baseColor = Vector3f(randf(), randf(), randf());
-			newGameObject.vertexColors = newGameObject.vertexPositions;
-			for (auto& color : newGameObject.vertexColors)
-				color = baseColor;
-
-			// Indices
-			const auto& indices = mesh.indices;
-			for (int i = 0; i < indices.size();)
-			{
-				unsigned int a = indices[i++];
-				unsigned int b = indices[i++];
-				unsigned int c = indices[i++];
-				newGameObject.indices.emplace_back(a, b, c);
-			}
-		}
-	}
+	for (const auto& gameObject : loadGameObjects())
+		gameObjects.push_back(gameObject);
 
 	for (GameObject& gameObject : gameObjects)
 	{
@@ -132,6 +72,7 @@ void init(GLFWwindow* window)
 	}
 };
 
+float a = 0;
 void display(GLFWwindow* window, double currentTime)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -140,11 +81,12 @@ void display(GLFWwindow* window, double currentTime)
 	glUseProgram(renderingProgram);
 
 	// Camera stuff
-	glm::mat4 view = glm::mat4(1.0f);
+	a += 0.01f;
+	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -a));
 	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
 	// Time
-	float time = currentTime;
+	float time = (float) currentTime;
 	GLuint timeLoc = glGetUniformLocation(renderingProgram, "u_time");
 	glUniform1f(timeLoc, time);
 
