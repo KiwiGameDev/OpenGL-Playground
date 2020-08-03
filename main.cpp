@@ -26,9 +26,39 @@ void init(GLFWwindow* window)
 {
 	renderingProgram = createShaderProgram();
 
+	std::vector<std::string> objFiles =
+	{
+		//"assets/solid_snake.obj",
+		//"assets/tank.obj",
+	};
 
-	for (const auto& gameObject : loadGameObjects())
+	for (auto& gameObject : loadGameObjects(objFiles))
+	{
+		gameObject.randomizeVertexColors();
 		gameObjects.push_back(gameObject);
+	}
+
+	Texture woodTexture = Texture("assets/wood_container.jpg");
+	Texture faceTexture = Texture("assets/awesomeface.png");
+
+	gameObjects.emplace_back();
+	GameObject& tempGameObject1 = gameObjects.back();
+	tempGameObject1.vertexPositions.emplace_back(-0.5f, -0.5f, 0);
+	tempGameObject1.vertexPositions.emplace_back(0.5f, -0.5f, 0);
+	tempGameObject1.vertexPositions.emplace_back(-0.5f, 0.5f, 0);
+	tempGameObject1.vertexPositions.emplace_back(0.5f, 0.5f, 0);
+	tempGameObject1.vertexTexCoords.emplace_back(0, 0);
+	tempGameObject1.vertexTexCoords.emplace_back(1.0f, 0);
+	tempGameObject1.vertexTexCoords.emplace_back(0, 1.0f);
+	tempGameObject1.vertexTexCoords.emplace_back(1.0f, 1.0f);
+	tempGameObject1.vertexColors.emplace_back(Vector3f(randf(), randf(), randf()));
+	tempGameObject1.vertexColors.emplace_back(Vector3f(randf(), randf(), randf()));
+	tempGameObject1.vertexColors.emplace_back(Vector3f(randf(), randf(), randf()));
+	tempGameObject1.vertexColors.emplace_back(Vector3f(randf(), randf(), randf()));
+	tempGameObject1.indices.emplace_back(0, 1, 2);
+	tempGameObject1.indices.emplace_back(1, 2, 3);
+	tempGameObject1.textures.emplace_back(woodTexture);
+	tempGameObject1.textures.emplace_back(faceTexture);
 
 	for (GameObject& gameObject : gameObjects)
 	{
@@ -45,31 +75,48 @@ void init(GLFWwindow* window)
 		glEnableVertexAttribArray(vertexAttrib);
 		glVertexAttribPointer(vertexAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
+		const auto& texCoords = gameObject.vertexTexCoords;
+		if (texCoords.size() > 0)
+		{
+			glGenBuffers(1, &bufferID);
+			glBindBuffer(GL_ARRAY_BUFFER, bufferID);
+			glBufferData(GL_ARRAY_BUFFER, texCoords.size() * sizeof(Vector2f), &texCoords[0], GL_STATIC_DRAW);
+			GLint texCoordAttrib = glGetAttribLocation(renderingProgram, "v_texCoord");
+			glEnableVertexAttribArray(texCoordAttrib);
+			glVertexAttribPointer(texCoordAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		}
+
 		const auto& colors = gameObject.vertexColors;
-		glGenBuffers(1, &bufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-		glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(Vector3f), &colors[0], GL_STATIC_DRAW);
-		GLint colorAttrib = glGetAttribLocation(renderingProgram, "v_color");
-		glEnableVertexAttribArray(colorAttrib);
-		glVertexAttribPointer(colorAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		if (colors.size() > 0)
+		{
+			glGenBuffers(1, &bufferID);
+			glBindBuffer(GL_ARRAY_BUFFER, bufferID);
+			glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(Vector3f), &colors[0], GL_STATIC_DRAW);
+			GLint colorAttrib = glGetAttribLocation(renderingProgram, "v_color");
+			glEnableVertexAttribArray(colorAttrib);
+			glVertexAttribPointer(colorAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		}
 
 		const auto& normals = gameObject.vertexNormals;
-		glGenBuffers(1, &bufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-		glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(Vector3f), &normals[0], GL_STATIC_DRAW);
-		GLint normalAttrib = glGetAttribLocation(renderingProgram, "v_normal");
-		glEnableVertexAttribArray(normalAttrib);
-		glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		if (normals.size() > 0)
+		{
+			glGenBuffers(1, &bufferID);
+			glBindBuffer(GL_ARRAY_BUFFER, bufferID);
+			glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(Vector3f), &normals[0], GL_STATIC_DRAW);
+			GLint normalAttrib = glGetAttribLocation(renderingProgram, "v_normal");
+			glEnableVertexAttribArray(normalAttrib);
+			glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		}
 
 		const auto& indices = gameObject.indices;
 		glGenBuffers(1, &bufferID);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferID);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Vector3u), &indices[0], GL_STATIC_DRAW);
-
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 };
 
 float a = 0;
@@ -85,15 +132,8 @@ void display(GLFWwindow* window, double currentTime)
 	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -a));
 	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
-	// Time
-	float time = (float) currentTime;
-	GLuint timeLoc = glGetUniformLocation(renderingProgram, "u_time");
-	glUniform1f(timeLoc, time);
-
-	// Directional Light
+	float time = static_cast<float>(currentTime);
 	float directionalLight[3] = { 0, sin(time), cos(time) };
-	GLuint lightLoc = glGetUniformLocation(renderingProgram, "u_directionalLight");
-	glUniform3fv(lightLoc, 1, directionalLight);
 
 	for (GameObject& gameObject : gameObjects)
 	{
@@ -105,11 +145,21 @@ void display(GLFWwindow* window, double currentTime)
 		GLuint modelMatLoc = glGetUniformLocation(renderingProgram, "u_transform");
 		glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, glm::value_ptr(transform));
 
-		glDrawElements(GL_TRIANGLES, gameObject.indices.size() * 3, GL_UNSIGNED_INT, 0);
+		// Time
+		GLuint timeLoc = glGetUniformLocation(renderingProgram, "u_time");
+		glUniform1f(timeLoc, time);
 
-		glBindVertexArray(0);
-		glUseProgram(0);
+		// Directional light
+		GLuint lightLoc = glGetUniformLocation(renderingProgram, "u_directionalLight");
+		glUniform3fv(lightLoc, 1, directionalLight);
+
+		gameObject.bindTextures(renderingProgram);
+
+		glDrawElements(GL_TRIANGLES, gameObject.indices.size() * 3, GL_UNSIGNED_INT, 0);
 	}
+
+	glBindVertexArray(0);
+	glUseProgram(0);
 }
 
 int main(void)
@@ -117,7 +167,7 @@ int main(void)
 	if (!glfwInit()) { exit(EXIT_FAILURE); }
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "OBJ Loader", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "S N A A A A K E ! ! !", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	if (glewInit() != GLEW_OK) { exit(EXIT_FAILURE); }
 
