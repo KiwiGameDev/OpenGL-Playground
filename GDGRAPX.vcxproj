@@ -155,6 +155,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="camera.h" />
     <None Include="fragShader.glsl" />
     <None Include="vertShader.glsl" />
   </ItemGroup>

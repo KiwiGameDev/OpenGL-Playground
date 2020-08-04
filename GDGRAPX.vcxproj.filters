@@ -26,6 +26,9 @@
     <None Include="vertShader.glsl">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="camera.h">
+      <Filter>Header Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tiny_obj_loader.h">

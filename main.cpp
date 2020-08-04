@@ -14,20 +14,15 @@
 #include "vector3.h"
 #include "gameObject.h"
 #include "helpers.h"
+#include "camera.h"
 
 #define WIDTH 800
 #define HEIGHT 800
 
 GLuint renderingProgram;
 
+Camera camera(glm::vec3(0, 0, 1.0f));
 std::vector<GameObject> gameObjects;
-
-glm::vec3 cameraPos = glm::vec3(0, 0, 1.0f);
-glm::vec3 cameraFront = glm::vec3(0, 0, -1.0f);
-glm::vec3 worldUp = glm::vec3(0, 1.0f, 0);
-float pitch = 0;
-float yaw = -90.0f;
-float fov = 45.0f;
 
 void init(GLFWwindow* window)
 {
@@ -138,8 +133,8 @@ void display(GLFWwindow* window, double currentTime)
 
 	// Camera stuff
 	float radius = 2.0f;
-	glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, worldUp);
-	glm::mat4 projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
+	glm::mat4 view = camera.getViewMatrix();
+	glm::mat4 projection = glm::perspective(glm::radians(camera.FOV), static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f, 100.0f);
 
 	for (GameObject& gameObject : gameObjects)
 	{
@@ -168,17 +163,16 @@ void display(GLFWwindow* window, double currentTime)
 	glUseProgram(0);
 }
 
-void processInput(GLFWwindow* window, float deltaTime)
+void processKeyInput(GLFWwindow* window, float deltaTime)
 {
-	const float cameraSpeed = 2.0f * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		cameraPos += cameraFront * cameraSpeed;
+		camera.processKeyboard(CameraMovement::FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		cameraPos -= cameraFront * cameraSpeed;
+		camera.processKeyboard(CameraMovement::BACKWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		cameraPos -= glm::normalize(glm::cross(cameraFront, worldUp)) * cameraSpeed;
+		camera.processKeyboard(CameraMovement::LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		cameraPos += glm::normalize(glm::cross(cameraFront, worldUp)) * cameraSpeed;
+		camera.processKeyboard(CameraMovement::RIGHT, deltaTime);
 }
 
 void mouseCallback(GLFWwindow* window, double xPos, double yPos)
@@ -198,30 +192,12 @@ void mouseCallback(GLFWwindow* window, double xPos, double yPos)
 	lastMousePos.x = xPos;
 	lastMousePos.y = yPos;
 
-	const float sensitivity = 0.1f;
-	xOffset *= sensitivity;
-	yOffset *= sensitivity;
-
-	yaw += xOffset;
-	pitch += yOffset;
-	pitch = glm::clamp(pitch, -80.0f, 80.0f);
-
-	float yawRad = glm::radians(yaw);
-	float pitchRad = glm::radians(pitch);
-	glm::vec3 direction;
-	direction.x = cos(yawRad) * cos(pitchRad);
-	direction.y = sin(pitchRad);
-	direction.z = sin(yawRad) * cos(pitchRad);
-	cameraFront = glm::normalize(direction);
+	camera.processMouseMovement(xOffset, yOffset);
 }
 
-void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+void scrollCallback(GLFWwindow* window, double xOffset, double yOffset)
 {
-	fov -= (float)yoffset;
-	if (fov < 1.0f)
-		fov = 1.0f;
-	if (fov > 45.0f)
-		fov = 45.0f;
+	camera.processMouseScroll(yOffset);
 }
 
 int main(void)
@@ -249,7 +225,7 @@ int main(void)
 		float deltaTime = currentTime - lastFrameTime;
 		lastFrameTime = currentTime;
 
-		processInput(window, deltaTime);
+		processKeyInput(window, deltaTime);
 		display(window, currentTime);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
