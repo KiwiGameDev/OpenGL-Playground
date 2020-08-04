@@ -15,12 +15,19 @@
 #include "gameObject.h"
 #include "helpers.h"
 
-#define WIDTH 600
-#define HEIGHT 600
+#define WIDTH 800
+#define HEIGHT 800
 
 GLuint renderingProgram;
 
 std::vector<GameObject> gameObjects;
+
+glm::vec3 cameraPos = glm::vec3(0, 0, 1.0f);
+glm::vec3 cameraFront = glm::vec3(0, 0, -1.0f);
+glm::vec3 worldUp = glm::vec3(0, 1.0f, 0);
+float pitch = 0;
+float yaw = -90.0f;
+float fov = 45.0f;
 
 void init(GLFWwindow* window)
 {
@@ -29,7 +36,7 @@ void init(GLFWwindow* window)
 	std::vector<std::string> objFiles =
 	{
 		//"assets/solid_snake.obj",
-		//"assets/tank.obj",
+		"assets/tank.obj",
 	};
 
 	for (auto& gameObject : loadGameObjects(objFiles))
@@ -43,10 +50,10 @@ void init(GLFWwindow* window)
 
 	gameObjects.emplace_back();
 	GameObject& tempGameObject1 = gameObjects.back();
-	tempGameObject1.vertexPositions.emplace_back(-0.5f, -0.5f, 0);
-	tempGameObject1.vertexPositions.emplace_back(0.5f, -0.5f, 0);
-	tempGameObject1.vertexPositions.emplace_back(-0.5f, 0.5f, 0);
-	tempGameObject1.vertexPositions.emplace_back(0.5f, 0.5f, 0);
+	tempGameObject1.vertexPositions.emplace_back(-0.5f, -0.5f, -3);
+	tempGameObject1.vertexPositions.emplace_back(0.5f, -0.5f, -3);
+	tempGameObject1.vertexPositions.emplace_back(-0.5f, 0.5f, -3);
+	tempGameObject1.vertexPositions.emplace_back(0.5f, 0.5f, -3);
 	tempGameObject1.vertexTexCoords.emplace_back(0, 0);
 	tempGameObject1.vertexTexCoords.emplace_back(1.0f, 0);
 	tempGameObject1.vertexTexCoords.emplace_back(0, 1.0f);
@@ -119,7 +126,6 @@ void init(GLFWwindow* window)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 };
 
-float a = 0;
 void display(GLFWwindow* window, double currentTime)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -127,13 +133,13 @@ void display(GLFWwindow* window, double currentTime)
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glUseProgram(renderingProgram);
 
-	// Camera stuff
-	a += 0.01f;
-	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -a));
-	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-
 	float time = static_cast<float>(currentTime);
 	float directionalLight[3] = { 0, sin(time), cos(time) };
+
+	// Camera stuff
+	float radius = 2.0f;
+	glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, worldUp);
+	glm::mat4 projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
 
 	for (GameObject& gameObject : gameObjects)
 	{
@@ -162,6 +168,62 @@ void display(GLFWwindow* window, double currentTime)
 	glUseProgram(0);
 }
 
+void processInput(GLFWwindow* window, float deltaTime)
+{
+	const float cameraSpeed = 2.0f * deltaTime;
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		cameraPos += cameraFront * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		cameraPos -= cameraFront * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		cameraPos -= glm::normalize(glm::cross(cameraFront, worldUp)) * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		cameraPos += glm::normalize(glm::cross(cameraFront, worldUp)) * cameraSpeed;
+}
+
+void mouseCallback(GLFWwindow* window, double xPos, double yPos)
+{
+	static bool isFirstMouseCapture = true;
+	static Vector2f lastMousePos = Vector2f(WIDTH * 0.5f, HEIGHT * 0.5f);
+
+	if (isFirstMouseCapture)
+	{
+		lastMousePos.x = xPos;
+		lastMousePos.y = yPos;
+		isFirstMouseCapture = false;
+	}
+
+	float xOffset = xPos - lastMousePos.x;
+	float yOffset = lastMousePos.y - yPos;
+	lastMousePos.x = xPos;
+	lastMousePos.y = yPos;
+
+	const float sensitivity = 0.1f;
+	xOffset *= sensitivity;
+	yOffset *= sensitivity;
+
+	yaw += xOffset;
+	pitch += yOffset;
+	pitch = glm::clamp(pitch, -80.0f, 80.0f);
+
+	float yawRad = glm::radians(yaw);
+	float pitchRad = glm::radians(pitch);
+	glm::vec3 direction;
+	direction.x = cos(yawRad) * cos(pitchRad);
+	direction.y = sin(pitchRad);
+	direction.z = sin(yawRad) * cos(pitchRad);
+	cameraFront = glm::normalize(direction);
+}
+
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	fov -= (float)yoffset;
+	if (fov < 1.0f)
+		fov = 1.0f;
+	if (fov > 45.0f)
+		fov = 45.0f;
+}
+
 int main(void)
 {
 	if (!glfwInit()) { exit(EXIT_FAILURE); }
@@ -173,12 +235,22 @@ int main(void)
 
 	init(window);
 
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, mouseCallback);
+	glfwSetScrollCallback(window, scrollCallback);
+
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 
+	float lastFrameTime = glfwGetTime();
 	while (!glfwWindowShouldClose(window))
 	{
-		display(window, glfwGetTime());
+		float currentTime = glfwGetTime();
+		float deltaTime = currentTime - lastFrameTime;
+		lastFrameTime = currentTime;
+
+		processInput(window, deltaTime);
+		display(window, currentTime);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
