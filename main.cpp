@@ -67,62 +67,11 @@ void init(GLFWwindow* window)
 	glBindVertexArray(lightVAO);
 	glGenBuffers(1, &lightVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
-	GLint lightVertexAttrib = myShader.getAttributeLocation("v_vertex");
-	glVertexAttribPointer(lightVertexAttrib, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-	glEnableVertexAttribArray(lightVertexAttrib);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(0);
 
 	for (GameObject& gameObject : gameObjects)
-	{
 		gameObject.init();
-
-		GLuint bufferID;
-
-		const auto& positions = gameObject.vertexPositions;
-		glGenBuffers(1, &bufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-		glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(Vector3f), &positions[0], GL_STATIC_DRAW);
-		GLint vertexAttrib = myShader.getAttributeLocation("v_vertex");
-		glEnableVertexAttribArray(vertexAttrib);
-		glVertexAttribPointer(vertexAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-		const auto& texCoords = gameObject.vertexTexCoords;
-		if (texCoords.size() > 0)
-		{
-			glGenBuffers(1, &bufferID);
-			glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-			glBufferData(GL_ARRAY_BUFFER, texCoords.size() * sizeof(Vector2f), &texCoords[0], GL_STATIC_DRAW);
-			GLint texCoordAttrib = myShader.getAttributeLocation("v_texCoord");
-			glEnableVertexAttribArray(texCoordAttrib);
-			glVertexAttribPointer(texCoordAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
-		}
-
-		const auto& colors = gameObject.vertexColors;
-		if (colors.size() > 0)
-		{
-			glGenBuffers(1, &bufferID);
-			glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-			glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(Vector3f), &colors[0], GL_STATIC_DRAW);
-			GLint colorAttrib = myShader.getAttributeLocation("v_color");
-			glEnableVertexAttribArray(colorAttrib);
-			glVertexAttribPointer(colorAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		}
-
-		const auto& normals = gameObject.vertexNormals;
-		if (normals.size() > 0)
-		{
-			glGenBuffers(1, &bufferID);
-			glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-			glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(Vector3f), &normals[0], GL_STATIC_DRAW);
-			GLint normalAttrib = myShader.getAttributeLocation("v_normal");
-			glEnableVertexAttribArray(normalAttrib);
-			glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		}
-
-		const auto& indices = gameObject.indices;
-		glGenBuffers(1, &bufferID);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferID);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Vector3u), &indices[0], GL_STATIC_DRAW);
-	}
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

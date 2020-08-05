@@ -86,6 +86,45 @@ struct GameObject
 	{
 		glGenVertexArrays(1, &vaoID);
 		glBindVertexArray(vaoID);
+
+		GLuint bufferID;
+
+		glGenBuffers(1, &bufferID);
+		glBindBuffer(GL_ARRAY_BUFFER, bufferID);
+		glBufferData(GL_ARRAY_BUFFER, vertexPositions.size() * sizeof(Vector3f), &vertexPositions[0], GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+		if (vertexColors.size() > 0)
+		{
+			glGenBuffers(1, &bufferID);
+			glBindBuffer(GL_ARRAY_BUFFER, bufferID);
+			glBufferData(GL_ARRAY_BUFFER, vertexColors.size() * sizeof(Vector3f), &vertexColors[0], GL_STATIC_DRAW);
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		}
+
+		if (vertexTexCoords.size() > 0)
+		{
+			glGenBuffers(1, &bufferID);
+			glBindBuffer(GL_ARRAY_BUFFER, bufferID);
+			glBufferData(GL_ARRAY_BUFFER, vertexTexCoords.size() * sizeof(Vector2f), &vertexTexCoords[0], GL_STATIC_DRAW);
+			glEnableVertexAttribArray(2);
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		}
+
+		if (vertexNormals.size() > 0)
+		{
+			glGenBuffers(1, &bufferID);
+			glBindBuffer(GL_ARRAY_BUFFER, bufferID);
+			glBufferData(GL_ARRAY_BUFFER, vertexNormals.size() * sizeof(Vector3f), &vertexNormals[0], GL_STATIC_DRAW);
+			glEnableVertexAttribArray(3);
+			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		}
+
+		glGenBuffers(1, &bufferID);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferID);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Vector3u), &indices[0], GL_STATIC_DRAW);
 	}
 
 	void randomizeVertexColors()

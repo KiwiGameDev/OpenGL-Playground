@@ -1,8 +1,8 @@
 #version 430
-in vec3 v_vertex;
-in vec3 v_color;
-in vec3 v_normal;
-in vec2 v_texCoord;
+layout (location = 0) in vec3 v_vertex;
+layout (location = 1) in vec3 v_color;
+layout (location = 2) in vec2 v_texCoord;
+layout (location = 3) in vec3 v_normal;
 
 out vec3 f_color;
 out vec2 texCoord;
