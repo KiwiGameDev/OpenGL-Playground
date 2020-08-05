@@ -82,6 +82,12 @@ struct GameObject
 		}
 	}
 
+	void init()
+	{
+		glGenVertexArrays(1, &vaoID);
+		glBindVertexArray(vaoID);
+	}
+
 	void randomizeVertexColors()
 	{
 		vertexColors = vertexPositions;
@@ -91,7 +97,7 @@ struct GameObject
 
 	void bindTextures(unsigned int shaderID)
 	{
-		for (int i = 0; i < textures.size(); i++)
+		for (size_t i = 0; i < textures.size(); i++)
 			textures[i].bindTexture(shaderID, i);
 	}
 };

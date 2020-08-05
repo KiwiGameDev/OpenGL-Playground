@@ -157,12 +157,13 @@
   <ItemGroup>
     <None Include="camera.h" />
     <None Include="fragShader.glsl" />
+    <None Include="lightFragShader.glsl" />
     <None Include="vertShader.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gameobject.h" />
     <ClInclude Include="helpers.h" />
-    <ClInclude Include="ShaderProgramAttachment.h" />
+    <ClInclude Include="shader.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="tiny_obj_loader.h" />

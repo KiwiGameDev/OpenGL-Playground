@@ -33,12 +33,14 @@ public:
     float MovementSpeed;
     float MouseSensitivity;
     float FOV;
+    float AspectRatio;
 
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH)
+    Camera(float aspectRatio, glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH)
         : Front(glm::vec3(0.0f, 0.0f, -1.0f)),
         MovementSpeed(SPEED),
         MouseSensitivity(SENSITIVITY),
-        FOV(DEFAULT_FOV)
+        FOV(DEFAULT_FOV),
+        AspectRatio(aspectRatio)
     {
         Position = position;
         WorldUp = up;
@@ -47,11 +49,12 @@ public:
         updateCameraVectors();
     }
 
-    Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch)
+    Camera(float aspectRatio, float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch)
         : Front(glm::vec3(0.0f, 0.0f, -1.0f)),
         MovementSpeed(SPEED),
         MouseSensitivity(SENSITIVITY),
-        FOV(DEFAULT_FOV)
+        FOV(DEFAULT_FOV),
+        AspectRatio(aspectRatio)
     {
         Position = glm::vec3(posX, posY, posZ);
         WorldUp = glm::vec3(upX, upY, upZ);
@@ -63,6 +66,11 @@ public:
     glm::mat4 getViewMatrix()
     {
         return glm::lookAt(Position, Position + Front, Up);
+    }
+    
+    glm::mat4 getPerspectiveMatrix()
+    {
+        return glm::perspective(glm::radians(FOV), AspectRatio, 0.1f, 100.0f);
     }
 
     void processKeyboard(CameraMovement direction, float deltaTime)
@@ -78,7 +86,7 @@ public:
             Position += Right * velocity;
     }
 
-    void processMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
+    void processMouseMovement(float xoffset, float yoffset, bool clampPitch = true)
     {
         xoffset *= MouseSensitivity;
         yoffset *= MouseSensitivity;
@@ -86,11 +94,11 @@ public:
         Yaw += xoffset;
         Pitch += yoffset;
 
-        if (constrainPitch)
+        if (clampPitch)
         {
             if (Pitch > 80.0f)
                 Pitch = 80.0f;
-            if (Pitch < -80.0f)
+            else if (Pitch < -80.0f)
                 Pitch = -80.0f;
         }
 

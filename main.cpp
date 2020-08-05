@@ -10,7 +10,7 @@
 #include <string>
 #include <fstream>
 
-#include "ShaderProgramAttachment.h"
+#include "shader.h"
 #include "vector3.h"
 #include "gameObject.h"
 #include "helpers.h"
@@ -19,14 +19,13 @@
 #define WIDTH 800
 #define HEIGHT 800
 
-GLuint renderingProgram;
-
-Camera camera(glm::vec3(0, 0, 1.0f));
+Shader myShader;
 std::vector<GameObject> gameObjects;
+Camera camera(static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), glm::vec3(0, 0, 1.0f));
 
 void init(GLFWwindow* window)
 {
-	renderingProgram = createShaderProgram();
+	myShader = Shader("vertShader.glsl", "fragShader.glsl");
 
 	std::vector<std::string> objFiles =
 	{
@@ -62,18 +61,27 @@ void init(GLFWwindow* window)
 	tempGameObject1.textures.emplace_back(woodTexture);
 	tempGameObject1.textures.emplace_back(faceTexture);
 
+	unsigned int lightVAO;
+	unsigned int lightVBO;
+	glGenVertexArrays(1, &lightVAO);
+	glBindVertexArray(lightVAO);
+	glGenBuffers(1, &lightVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
+	GLint lightVertexAttrib = myShader.getAttributeLocation("v_vertex");
+	glVertexAttribPointer(lightVertexAttrib, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glEnableVertexAttribArray(lightVertexAttrib);
+
 	for (GameObject& gameObject : gameObjects)
 	{
-		GLuint bufferID;
+		gameObject.init();
 
-		glGenVertexArrays(1, &gameObject.vaoID);
-		glBindVertexArray(gameObject.vaoID);
+		GLuint bufferID;
 
 		const auto& positions = gameObject.vertexPositions;
 		glGenBuffers(1, &bufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, bufferID);
 		glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(Vector3f), &positions[0], GL_STATIC_DRAW);
-		GLint vertexAttrib = glGetAttribLocation(renderingProgram, "v_vertex");
+		GLint vertexAttrib = myShader.getAttributeLocation("v_vertex");
 		glEnableVertexAttribArray(vertexAttrib);
 		glVertexAttribPointer(vertexAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
@@ -83,7 +91,7 @@ void init(GLFWwindow* window)
 			glGenBuffers(1, &bufferID);
 			glBindBuffer(GL_ARRAY_BUFFER, bufferID);
 			glBufferData(GL_ARRAY_BUFFER, texCoords.size() * sizeof(Vector2f), &texCoords[0], GL_STATIC_DRAW);
-			GLint texCoordAttrib = glGetAttribLocation(renderingProgram, "v_texCoord");
+			GLint texCoordAttrib = myShader.getAttributeLocation("v_texCoord");
 			glEnableVertexAttribArray(texCoordAttrib);
 			glVertexAttribPointer(texCoordAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
 		}
@@ -94,7 +102,7 @@ void init(GLFWwindow* window)
 			glGenBuffers(1, &bufferID);
 			glBindBuffer(GL_ARRAY_BUFFER, bufferID);
 			glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(Vector3f), &colors[0], GL_STATIC_DRAW);
-			GLint colorAttrib = glGetAttribLocation(renderingProgram, "v_color");
+			GLint colorAttrib = myShader.getAttributeLocation("v_color");
 			glEnableVertexAttribArray(colorAttrib);
 			glVertexAttribPointer(colorAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		}
@@ -105,7 +113,7 @@ void init(GLFWwindow* window)
 			glGenBuffers(1, &bufferID);
 			glBindBuffer(GL_ARRAY_BUFFER, bufferID);
 			glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(Vector3f), &normals[0], GL_STATIC_DRAW);
-			GLint normalAttrib = glGetAttribLocation(renderingProgram, "v_normal");
+			GLint normalAttrib = myShader.getAttributeLocation("v_normal");
 			glEnableVertexAttribArray(normalAttrib);
 			glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		}
@@ -125,8 +133,7 @@ void display(GLFWwindow* window, double currentTime)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glUseProgram(renderingProgram);
+	myShader.use();
 
 	float time = static_cast<float>(currentTime);
 	float directionalLight[3] = { 0, sin(time), cos(time) };
@@ -134,27 +141,20 @@ void display(GLFWwindow* window, double currentTime)
 	// Camera stuff
 	float radius = 2.0f;
 	glm::mat4 view = camera.getViewMatrix();
-	glm::mat4 projection = glm::perspective(glm::radians(camera.FOV), static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f, 100.0f);
+	glm::mat4 projection = camera.getPerspectiveMatrix();
 
 	for (GameObject& gameObject : gameObjects)
 	{
 		glBindVertexArray(gameObject.vaoID);
-		glUseProgram(renderingProgram);
 
-		// Transform
 		glm::mat4 transform = projection * view * gameObject.model;
-		GLuint modelMatLoc = glGetUniformLocation(renderingProgram, "u_transform");
-		glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, glm::value_ptr(transform));
 
-		// Time
-		GLuint timeLoc = glGetUniformLocation(renderingProgram, "u_time");
-		glUniform1f(timeLoc, time);
+		myShader.use();
+		myShader.setMat4("u_transform", transform);
+		myShader.setFloat("u_time", time);
+		myShader.setVec3("u_directionalLight", directionalLight);
 
-		// Directional light
-		GLuint lightLoc = glGetUniformLocation(renderingProgram, "u_directionalLight");
-		glUniform3fv(lightLoc, 1, directionalLight);
-
-		gameObject.bindTextures(renderingProgram);
+		gameObject.bindTextures(myShader.ID);
 
 		glDrawElements(GL_TRIANGLES, gameObject.indices.size() * 3, GL_UNSIGNED_INT, 0);
 	}
@@ -175,10 +175,13 @@ void processKeyInput(GLFWwindow* window, float deltaTime)
 		camera.processKeyboard(CameraMovement::RIGHT, deltaTime);
 }
 
-void mouseCallback(GLFWwindow* window, double xPos, double yPos)
+void mouseCallback(GLFWwindow* window, double dPosX, double dPosY)
 {
 	static bool isFirstMouseCapture = true;
 	static Vector2f lastMousePos = Vector2f(WIDTH * 0.5f, HEIGHT * 0.5f);
+
+	float xPos = static_cast<float>(dPosX);
+	float yPos = static_cast<float>(dPosY);
 
 	if (isFirstMouseCapture)
 	{
@@ -197,7 +200,7 @@ void mouseCallback(GLFWwindow* window, double xPos, double yPos)
 
 void scrollCallback(GLFWwindow* window, double xOffset, double yOffset)
 {
-	camera.processMouseScroll(yOffset);
+	camera.processMouseScroll(static_cast<float>(yOffset));
 }
 
 int main(void)
@@ -218,10 +221,10 @@ int main(void)
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 
-	float lastFrameTime = glfwGetTime();
+	float lastFrameTime = static_cast<float>(glfwGetTime());
 	while (!glfwWindowShouldClose(window))
 	{
-		float currentTime = glfwGetTime();
+		float currentTime = static_cast<float>(glfwGetTime());
 		float deltaTime = currentTime - lastFrameTime;
 		lastFrameTime = currentTime;
 
