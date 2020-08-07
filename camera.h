@@ -16,7 +16,7 @@ static const float YAW = -90.0f;
 static const float PITCH = 0.0f;
 static const float SPEED = 2.5f;
 static const float SENSITIVITY = 0.1f;
-static const float DEFAULT_FOV = 45.0f;
+static const float DEFAULT_FOV = 45.0f; 
 
 class Camera
 {
@@ -32,46 +32,23 @@ public:
 
     float MovementSpeed;
     float MouseSensitivity;
-    float FOV;
-    float AspectRatio;
 
-    Camera(float aspectRatio, glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH)
-        : Front(glm::vec3(0.0f, 0.0f, -1.0f)),
-        MovementSpeed(SPEED),
-        MouseSensitivity(SENSITIVITY),
-        FOV(DEFAULT_FOV),
-        AspectRatio(aspectRatio)
+    Camera (glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH)
     {
+        Front = glm::vec3(0.0f, 0.0f, -1.0f);
+        MovementSpeed = SPEED;
+        MouseSensitivity = SENSITIVITY;
+
         Position = position;
         WorldUp = up;
         Yaw = yaw;
         Pitch = pitch;
+
         updateCameraVectors();
     }
 
-    Camera(float aspectRatio, float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch)
-        : Front(glm::vec3(0.0f, 0.0f, -1.0f)),
-        MovementSpeed(SPEED),
-        MouseSensitivity(SENSITIVITY),
-        FOV(DEFAULT_FOV),
-        AspectRatio(aspectRatio)
-    {
-        Position = glm::vec3(posX, posY, posZ);
-        WorldUp = glm::vec3(upX, upY, upZ);
-        Yaw = yaw;
-        Pitch = pitch;
-        updateCameraVectors();
-    }
-
-    glm::mat4 getViewMatrix()
-    {
-        return glm::lookAt(Position, Position + Front, Up);
-    }
-    
-    glm::mat4 getPerspectiveMatrix()
-    {
-        return glm::perspective(glm::radians(FOV), AspectRatio, 0.1f, 100.0f);
-    }
+    virtual glm::mat4 getProjectionMatrix() = 0;
+    virtual void processMouseScroll(float yoffset) = 0;
 
     void processKeyboard(CameraMovement direction, float deltaTime)
     {
@@ -105,13 +82,9 @@ public:
         updateCameraVectors();
     }
 
-    void processMouseScroll(float yoffset)
+    glm::mat4 getViewMatrix()
     {
-        FOV -= (float)yoffset;
-        if (FOV < 1.0f)
-            FOV = 1.0f;
-        if (FOV > 45.0f)
-            FOV = 45.0f;
+        return glm::lookAt(Position, Position + Front, Up);
     }
 
 private:
@@ -134,3 +107,56 @@ private:
         Up = glm::normalize(glm::cross(Right, Front));
     }
 };
+
+class CameraPerspective : public Camera
+{
+public:
+    float FOV;
+    float AspectRatio;
+
+    CameraPerspective(float aspectRatio, glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH)
+        : Camera(position, up, yaw, pitch)
+    {
+        FOV = DEFAULT_FOV;
+        AspectRatio = aspectRatio;
+    }
+    
+    glm::mat4 getProjectionMatrix()
+    {
+        return glm::perspective(glm::radians(FOV), AspectRatio, 0.1f, 100.0f);
+    }
+
+    void processMouseScroll(float yoffset)
+    {
+        FOV -= (float)yoffset;
+        if (FOV < 1.0f)
+            FOV = 1.0f;
+        if (FOV > 90.0f)
+            FOV = 90.0f;
+    }
+};
+
+class CameraOrthographic : public Camera
+{
+public:
+    Vector2f Dimensions;
+
+    CameraOrthographic(Vector2f dimensions, glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH)
+        : Camera(position, up, yaw, pitch)
+    {
+        Dimensions = dimensions;
+    }
+
+    glm::mat4 getProjectionMatrix()
+    {
+        float halfX = Dimensions.x * 0.5f;
+        float halfY = Dimensions.y * 0.5f;
+        return glm::ortho(-halfX, halfX, -halfY, halfY, 0.1f, 100.0f);
+    }
+
+    void processMouseScroll(float yoffset)
+    {
+        
+    }
+};
+

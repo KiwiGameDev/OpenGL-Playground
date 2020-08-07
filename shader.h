@@ -1,5 +1,6 @@
 #include <GL/glew.h>
 #include <glfw/glfw3.h>
+#include <glm/glm.hpp>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -105,6 +106,12 @@ public:
     void setVec3(const char* name, float value[3]) const
     {
         glUniform3fv(glGetUniformLocation(ID, name), 1, value);
+    }
+
+    void setVec3(const char* name, glm::vec3 vec3) const
+    {
+        float tempArr[3] = { vec3.x, vec3.y, vec3.z };
+        glUniform3fv(glGetUniformLocation(ID, name), 1, tempArr);
     }
 
     void setMat4(const char* name, glm::mat4 value) const

@@ -19,59 +19,52 @@
 #define WIDTH 800
 #define HEIGHT 800
 
-Shader myShader;
+
+
+// TEMP
+unsigned int lightVAO;
+glm::vec3 lightPos(2.0f, 2.0f, 2.0f);
+
+
+Shader lightShader;
+Shader shader;
 std::vector<GameObject> gameObjects;
-Camera camera(static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), glm::vec3(0, 0, 1.0f));
+Camera* camera = new CameraPerspective((float)WIDTH / (float)HEIGHT, glm::vec3(0, 0, 5.0f));
+//Camera* camera = new CameraOrthographic({ WIDTH * 0.01f, HEIGHT * 0.01f }, glm::vec3(0, 0, 5.0f));
 
 void init(GLFWwindow* window)
 {
-	myShader = Shader("vertShader.glsl", "fragShader.glsl");
+	lightShader = Shader("lightingShader.vert", "lightShader.frag");
+	shader = Shader("lightingShader.vert", "lightingShader.frag");
 
 	std::vector<std::string> objFiles =
 	{
+		"assets/default_cube.obj",
 		//"assets/solid_snake.obj",
-		"assets/tank.obj",
+		//"assets/tank.obj",
 	};
 
 	for (auto& gameObject : loadGameObjects(objFiles))
 	{
-		gameObject.randomizeVertexColors();
 		gameObjects.push_back(gameObject);
 	}
 
-	Texture woodTexture = Texture("assets/wood_container.jpg");
-	Texture faceTexture = Texture("assets/awesomeface.png");
+	for (GameObject& gameObject : gameObjects)
+	{
+		gameObject.init();
+	}
 
-	gameObjects.emplace_back();
-	GameObject& tempGameObject1 = gameObjects.back();
-	tempGameObject1.vertexPositions.emplace_back(-0.5f, -0.5f, -3);
-	tempGameObject1.vertexPositions.emplace_back(0.5f, -0.5f, -3);
-	tempGameObject1.vertexPositions.emplace_back(-0.5f, 0.5f, -3);
-	tempGameObject1.vertexPositions.emplace_back(0.5f, 0.5f, -3);
-	tempGameObject1.vertexTexCoords.emplace_back(0, 0);
-	tempGameObject1.vertexTexCoords.emplace_back(1.0f, 0);
-	tempGameObject1.vertexTexCoords.emplace_back(0, 1.0f);
-	tempGameObject1.vertexTexCoords.emplace_back(1.0f, 1.0f);
-	tempGameObject1.vertexColors.emplace_back(Vector3f(randf(), randf(), randf()));
-	tempGameObject1.vertexColors.emplace_back(Vector3f(randf(), randf(), randf()));
-	tempGameObject1.vertexColors.emplace_back(Vector3f(randf(), randf(), randf()));
-	tempGameObject1.vertexColors.emplace_back(Vector3f(randf(), randf(), randf()));
-	tempGameObject1.indices.emplace_back(0, 1, 2);
-	tempGameObject1.indices.emplace_back(1, 2, 3);
-	tempGameObject1.textures.emplace_back(woodTexture);
-	tempGameObject1.textures.emplace_back(faceTexture);
 
-	unsigned int lightVAO;
-	unsigned int lightVBO;
+
+	// TEMP
+	GameObject& gameObject1 = gameObjects.back();
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);
-	glGenBuffers(1, &lightVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+	glBindBuffer(GL_ARRAY_BUFFER, gameObject1.vertexPositionID);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gameObject1.indicesID);
 
-	for (GameObject& gameObject : gameObjects)
-		gameObject.init();
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -82,31 +75,64 @@ void display(GLFWwindow* window, double currentTime)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	myShader.use();
+	shader.use();
 
-	float time = static_cast<float>(currentTime);
+	float time = (float)currentTime;
 	float directionalLight[3] = { 0, sin(time), cos(time) };
 
 	// Camera stuff
 	float radius = 2.0f;
-	glm::mat4 view = camera.getViewMatrix();
-	glm::mat4 projection = camera.getPerspectiveMatrix();
+	glm::mat4 view = camera->getViewMatrix();
+	glm::mat4 projection = camera->getProjectionMatrix();
+	glm::mat4 worldToClip = projection * view;
 
 	for (GameObject& gameObject : gameObjects)
 	{
 		glBindVertexArray(gameObject.vaoID);
 
-		glm::mat4 transform = projection * view * gameObject.model;
+		glm::mat4 localToClip = worldToClip * gameObject.model;
 
-		myShader.use();
-		myShader.setMat4("u_transform", transform);
-		myShader.setFloat("u_time", time);
-		myShader.setVec3("u_directionalLight", directionalLight);
+		shader.use();
+		shader.setMat4("u_model", gameObject.model);
+		shader.setMat4("u_localToClip", localToClip);
+		shader.setFloat("u_time", time);
+		shader.setVec3("u_directionalLight", directionalLight);
 
-		gameObject.bindTextures(myShader.ID);
+		float objectColor[] = { 1.0f, 0.5f, 0.31f };
+		float lightColor[] = { 1.0f, 1.0f, 1.0f };
+
+		shader.setVec3("u_cameraPos", camera->Position);
+		shader.setVec3("u_objectColor", objectColor);
+		shader.setVec3("u_lightColor", lightColor);
+		shader.setVec3("u_lightPos", lightPos);
+		shader.setInt("u_shininess", 64);
+
+		gameObject.bindTextures(shader.ID);
 
 		glDrawElements(GL_TRIANGLES, gameObject.indices.size() * 3, GL_UNSIGNED_INT, 0);
 	}
+
+
+
+
+	// TEMP
+	lightPos.x = sin(glfwGetTime()) * 2;
+	lightPos.y = -sin(glfwGetTime()) * 2;
+	lightPos.z = cos(glfwGetTime()) * 2;
+
+	glBindVertexArray(lightVAO);
+	glm::mat4 lightModel = glm::mat4(1.0f);
+	lightModel = glm::translate(lightModel, lightPos);
+	lightModel = glm::scale(lightModel, glm::vec3(0.2f));
+	glm::mat4 localToClip = worldToClip * lightModel;
+
+	lightShader.use();
+	lightShader.setMat4("u_localToClip", localToClip);
+
+	glDrawElements(GL_TRIANGLES, 12 * 3, GL_UNSIGNED_INT, 0);
+
+
+
 
 	glBindVertexArray(0);
 	glUseProgram(0);
@@ -115,13 +141,13 @@ void display(GLFWwindow* window, double currentTime)
 void processKeyInput(GLFWwindow* window, float deltaTime)
 {
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.processKeyboard(CameraMovement::FORWARD, deltaTime);
+		camera->processKeyboard(CameraMovement::FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.processKeyboard(CameraMovement::BACKWARD, deltaTime);
+		camera->processKeyboard(CameraMovement::BACKWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.processKeyboard(CameraMovement::LEFT, deltaTime);
+		camera->processKeyboard(CameraMovement::LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.processKeyboard(CameraMovement::RIGHT, deltaTime);
+		camera->processKeyboard(CameraMovement::RIGHT, deltaTime);
 }
 
 void mouseCallback(GLFWwindow* window, double dPosX, double dPosY)
@@ -129,8 +155,8 @@ void mouseCallback(GLFWwindow* window, double dPosX, double dPosY)
 	static bool isFirstMouseCapture = true;
 	static Vector2f lastMousePos = Vector2f(WIDTH * 0.5f, HEIGHT * 0.5f);
 
-	float xPos = static_cast<float>(dPosX);
-	float yPos = static_cast<float>(dPosY);
+	float xPos = (float)dPosX;
+	float yPos = (float)dPosY;
 
 	if (isFirstMouseCapture)
 	{
@@ -144,12 +170,12 @@ void mouseCallback(GLFWwindow* window, double dPosX, double dPosY)
 	lastMousePos.x = xPos;
 	lastMousePos.y = yPos;
 
-	camera.processMouseMovement(xOffset, yOffset);
+	camera->processMouseMovement(xOffset, yOffset);
 }
 
 void scrollCallback(GLFWwindow* window, double xOffset, double yOffset)
 {
-	camera.processMouseScroll(static_cast<float>(yOffset));
+	camera->processMouseScroll((float)yOffset);
 }
 
 int main(void)
@@ -170,10 +196,10 @@ int main(void)
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 
-	float lastFrameTime = static_cast<float>(glfwGetTime());
+	float lastFrameTime = (float)glfwGetTime();
 	while (!glfwWindowShouldClose(window))
 	{
-		float currentTime = static_cast<float>(glfwGetTime());
+		float currentTime = (float)glfwGetTime();
 		float deltaTime = currentTime - lastFrameTime;
 		lastFrameTime = currentTime;
 

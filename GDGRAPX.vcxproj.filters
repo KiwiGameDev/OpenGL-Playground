@@ -20,16 +20,22 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="fragShader.glsl">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="vertShader.glsl">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="camera.h">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="lightFragShader.glsl">
+    <None Include="lightShader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="defaultShader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="defaultShader.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="lightingShader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="lightingShader.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

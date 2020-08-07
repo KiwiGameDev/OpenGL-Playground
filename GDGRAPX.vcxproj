@@ -156,9 +156,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="camera.h" />
-    <None Include="fragShader.glsl" />
-    <None Include="lightFragShader.glsl" />
-    <None Include="vertShader.glsl" />
+    <None Include="defaultShader.frag" />
+    <None Include="lightShader.frag" />
+    <None Include="lightingShader.frag" />
+    <None Include="lightingShader.vert" />
+    <None Include="defaultShader.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gameobject.h" />

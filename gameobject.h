@@ -15,6 +15,12 @@ struct GameObject
 {
 	GLuint vaoID;
 
+	unsigned int vertexPositionID;
+	unsigned int vertexColorsID;
+	unsigned int vertexTexCoordsID;
+	unsigned int vertexNormalsID;
+	unsigned int indicesID;
+
 	std::vector<Vector3f> vertexPositions;
 	std::vector<Vector3f> vertexColors;
 	std::vector<Vector2f> vertexTexCoords;
@@ -31,6 +37,12 @@ struct GameObject
 	GameObject()
 	{
 		vaoID = -1;
+
+		vertexPositionID = 255;
+		vertexColorsID = 255;
+		vertexTexCoordsID = 255;
+		vertexNormalsID = 255;
+		indicesID = 255;
 
 		vertexPositions = std::vector<Vector3f>();
 		vertexColors = std::vector<Vector3f>();
@@ -87,43 +99,41 @@ struct GameObject
 		glGenVertexArrays(1, &vaoID);
 		glBindVertexArray(vaoID);
 
-		GLuint bufferID;
-
-		glGenBuffers(1, &bufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, bufferID);
+		glGenBuffers(1, &vertexPositionID);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexPositionID);
 		glBufferData(GL_ARRAY_BUFFER, vertexPositions.size() * sizeof(Vector3f), &vertexPositions[0], GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
 
 		if (vertexColors.size() > 0)
 		{
-			glGenBuffers(1, &bufferID);
-			glBindBuffer(GL_ARRAY_BUFFER, bufferID);
+			glGenBuffers(1, &vertexColorsID);
+			glBindBuffer(GL_ARRAY_BUFFER, vertexColorsID);
 			glBufferData(GL_ARRAY_BUFFER, vertexColors.size() * sizeof(Vector3f), &vertexColors[0], GL_STATIC_DRAW);
-			glEnableVertexAttribArray(1);
 			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		}
-
-		if (vertexTexCoords.size() > 0)
-		{
-			glGenBuffers(1, &bufferID);
-			glBindBuffer(GL_ARRAY_BUFFER, bufferID);
-			glBufferData(GL_ARRAY_BUFFER, vertexTexCoords.size() * sizeof(Vector2f), &vertexTexCoords[0], GL_STATIC_DRAW);
-			glEnableVertexAttribArray(2);
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(1);
 		}
 
 		if (vertexNormals.size() > 0)
 		{
-			glGenBuffers(1, &bufferID);
-			glBindBuffer(GL_ARRAY_BUFFER, bufferID);
+			glGenBuffers(1, &vertexNormalsID);
+			glBindBuffer(GL_ARRAY_BUFFER, vertexNormalsID);
 			glBufferData(GL_ARRAY_BUFFER, vertexNormals.size() * sizeof(Vector3f), &vertexNormals[0], GL_STATIC_DRAW);
-			glEnableVertexAttribArray(3);
-			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(2);
 		}
 
-		glGenBuffers(1, &bufferID);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferID);
+		if (vertexTexCoords.size() > 0)
+		{
+			glGenBuffers(1, &vertexTexCoordsID);
+			glBindBuffer(GL_ARRAY_BUFFER, vertexTexCoordsID);
+			glBufferData(GL_ARRAY_BUFFER, vertexTexCoords.size() * sizeof(Vector2f), &vertexTexCoords[0], GL_STATIC_DRAW);
+			glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(3);
+		}
+
+		glGenBuffers(1, &indicesID);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesID);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Vector3u), &indices[0], GL_STATIC_DRAW);
 	}
 
