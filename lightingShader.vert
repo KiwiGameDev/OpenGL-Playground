@@ -15,6 +15,6 @@ void main()
 {
     gl_Position = u_localToClip * vec4(v_position, 1.0);
     worldPos = vec3(u_model * vec4(v_position, 1.0));
-    normal = v_normal;
+    normal = mat3(transpose(inverse(u_model))) * v_normal;
     texCoords = v_texCoords;
 } 

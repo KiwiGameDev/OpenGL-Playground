@@ -40,6 +40,7 @@ void init(GLFWwindow* window)
 	std::vector<std::string> objFiles =
 	{
 		"assets/box",
+		"assets/box",
 		//"assets/solid_snake",
 		//"assets/tank",
 	};
@@ -58,6 +59,11 @@ void init(GLFWwindow* window)
 	GameObject& box = gameObjects.front();
 	box.textures.push_back(Texture("assets/wood_box.png"));
 	box.textures.push_back(Texture("assets/wood_box_specular.png"));
+	GameObject& box2 = gameObjects[1];
+	box2.textures.push_back(Texture("assets/wood_box.png"));
+	box2.textures.push_back(Texture("assets/wood_box_specular.png"));
+	box2.Position = Vector3f(-6.0f, 6.0f, 0.0f);
+	box2.Rotation = Vector3f(1.0f, 2.0f, 3.0f);
 
 
 	// TEMP
@@ -78,11 +84,8 @@ void display(GLFWwindow* window, double currentTime)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	shader.use();
-
 	// Common variables
 	float time = (float)currentTime;
-	float directionalLight[3] = { 0, sin(time), cos(time) };
 
 	// Camera stuff
 	float radius = 2.0f;
@@ -90,12 +93,10 @@ void display(GLFWwindow* window, double currentTime)
 	glm::mat4 projection = camera->getProjectionMatrix();
 	glm::mat4 worldToClip = projection * view;
 
-
-
 	// Light
-	lightPos.x = sin(glfwGetTime()) * 2;
-	lightPos.y = -sin(glfwGetTime()) * 2;
-	lightPos.z = cos(glfwGetTime()) * 2;
+	lightPos.x = sin(time) * 2;
+	lightPos.y = -sin(time) * 2;
+	lightPos.z = cos(time) * 2;
 
 	glBindVertexArray(lightVAO);
 	glm::mat4 lightModel = glm::mat4(1.0f);
@@ -107,39 +108,63 @@ void display(GLFWwindow* window, double currentTime)
 	lightShader.setMat4("u_localToClip", localToClip);
 
 	glDrawElements(GL_TRIANGLES, 12 * 3, GL_UNSIGNED_INT, 0);
+	// Light END
 
 
+
+	GameObject& box2 = gameObjects[1];
+	box2.Rotation = Vector3f(time * 0.25f, time * 0.5f, time * 0.75f);
+
+
+
+
+	// Common across all objects. Perhaps loop across all shaders
+	shader.use();
+	shader.setFloat("u_time", time);
+	shader.setVec3("u_viewPos", camera->Position);
 
 	for (GameObject& gameObject : gameObjects)
 	{
-		glBindVertexArray(gameObject.vaoID);
-
-		glm::mat4 localToClip = worldToClip * gameObject.model;
+		gameObject.bindVAO();
+		gameObject.updateModelMatrix();
+		gameObject.bindTextures(shader.ID);
 
 		shader.use();
-		shader.setFloat("u_time", time);
-		shader.setMat4("u_model", gameObject.model);
-		shader.setMat4("u_localToClip", localToClip);
+		shader.setMat4("u_model", gameObject.Model);
+		shader.setMat4("u_localToClip", gameObject.getLocalToClipMatrix(worldToClip));
 
-		float objectColor[] = { 1.0f, 0.5f, 0.31f };
-		float lightColor[] = { 1.0f, 1.0f, 1.0f };
+		// Directional light
+		shader.setVec3("u_dirLight.direction", -0.2f, -1.0f, -0.3f);
+		shader.setVec3("u_dirLight.diffuse", 0.8f, 0.8f, 0.8f);
+		shader.setVec3("u_dirLight.specular", 1.0f, 1.0f, 1.0f);
+		shader.setFloat("u_dirLight.constant", 1.0f);
 
-		shader.setVec3("u_cameraPos", camera->Position);
-		shader.setVec3("u_objectColor", objectColor);
+		// Point lights
+		shader.setVec3("u_pointLights[0].position", lightPos);
+		shader.setVec3("u_pointLights[0].ambient", 0.2f, 0.2f, 0.2f);
+		shader.setVec3("u_pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
+		shader.setVec3("u_pointLights[0].specular", 1.0f, 1.0f, 1.0f);
+		shader.setFloat("u_pointLights[0].constant", 1.0f);
+		shader.setFloat("u_pointLights[0].linear", 0.09f);
+		shader.setFloat("u_pointLights[0].quadratic", 0.032f);
 
-		shader.setVec3("u_light.position", lightPos);
-		shader.setVec3("u_light.ambient", 0.2f, 0.2f, 0.2f);
-		shader.setVec3("u_light.diffuse", 0.8f, 0.8f, 0.8f);
-		shader.setVec3("u_light.specular", 1.0f, 1.0f, 1.0f);
+		// Spot Light
+		shader.setVec3("u_spotLight.position", camera->Position);
+		shader.setVec3("u_spotLight.direction", camera->Front);
+		shader.setFloat("u_spotLight.cutoff", glm::cos(glm::radians(12.5f)));
+		shader.setFloat("u_spotLight.outerCutoff", glm::cos(glm::radians(17.5f)));
+		shader.setVec3("u_spotLight.diffuse", 0.8f, 0.8f, 0.8f);
+		shader.setVec3("u_spotLight.specular", 1.0f, 1.0f, 1.0f);
+		shader.setFloat("u_spotLight.constant", 1.0f);
+		shader.setFloat("u_spotLight.linear", 0.09f);
+		shader.setFloat("u_spotLight.quadratic", 0.032f);
 
 		shader.setVec3("u_material.ambient", 1.0f, 0.5f, 0.31f);
 		shader.setVec3("u_material.diffuse", 1.0f, 0.5f, 0.31f);
 		shader.setVec3("u_material.specular", 0.5f, 0.5f, 0.5f);
 		shader.setFloat("u_material.shininess", 32.0f);
 
-		gameObject.bindTextures(shader.ID);
-
-		glDrawElements(GL_TRIANGLES, gameObject.indices.size() * 3, GL_UNSIGNED_INT, 0);
+		gameObject.draw();
 	}
 
 	glBindVertexArray(0);

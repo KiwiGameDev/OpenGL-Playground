@@ -13,7 +13,7 @@
 
 struct GameObject
 {
-	GLuint vaoID;
+	GLuint VAO;
 
 	unsigned int vertexPositionID;
 	unsigned int vertexColorsID;
@@ -36,7 +36,7 @@ struct GameObject
 
 	GameObject()
 	{
-		vaoID = -1;
+		VAO = -1;
 
 		vertexPositionID = 255;
 		vertexColorsID = 255;
@@ -105,8 +105,8 @@ struct GameObject
 
 	void init()
 	{
-		glGenVertexArrays(1, &vaoID);
-		glBindVertexArray(vaoID);
+		glGenVertexArrays(1, &VAO);
+		glBindVertexArray(VAO);
 
 		glGenBuffers(1, &vertexPositionID);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexPositionID);
@@ -146,6 +146,11 @@ struct GameObject
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Vector3u), &indices[0], GL_STATIC_DRAW);
 	}
 
+	void bindVAO()
+	{
+		glBindVertexArray(VAO);
+	}
+
 	void updateModelMatrix()
 	{
 		Model = glm::mat4(1.0f);
@@ -154,6 +159,11 @@ struct GameObject
 		Model = glm::rotate(Model, Rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
 		Model = glm::rotate(Model, Rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
 		Model = glm::scale(Model, glm::vec3(Scale.x, Scale.y, Scale.z));
+	}
+
+	glm::mat4 getLocalToClipMatrix(const glm::mat4& worldToClip)
+	{
+		return worldToClip * Model;
 	}
 
 	void randomizeVertexColors()
@@ -167,6 +177,11 @@ struct GameObject
 	{
 		for (size_t i = 0; i < textures.size(); i++)
 			textures[i].bindTexture(shaderID, i);
+	}
+
+	void draw()
+	{
+		glDrawElements(GL_TRIANGLES, indices.size() * 3, GL_UNSIGNED_INT, 0);
 	}
 };
 
