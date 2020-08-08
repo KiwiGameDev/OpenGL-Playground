@@ -29,10 +29,10 @@ struct GameObject
 
 	std::vector<Texture> textures;
 
-	glm::mat4 model;
-	Vector3f position;
-	Vector3f velocity;
-	Vector3f rotation;
+	glm::mat4 Model;
+	Vector3f Position;
+	Vector3f Rotation;
+	Vector3f Scale;
 
 	GameObject()
 	{
@@ -52,10 +52,10 @@ struct GameObject
 
 		textures = std::vector<Texture>();
 
-		model = glm::mat4(1.0f);
-		position = Vector3f();
-		velocity = Vector3f();
-		rotation = Vector3f();
+		Model = glm::mat4(1.0f);
+		Position = Vector3f();
+		Rotation = Vector3f();
+		Scale = Vector3f(1.0f, 1.0f, 1.0f);
 	}
 
 	GameObject(const tinyobj::shape_t& shape)
@@ -144,6 +144,16 @@ struct GameObject
 		glGenBuffers(1, &indicesID);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesID);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Vector3u), &indices[0], GL_STATIC_DRAW);
+	}
+
+	void updateModelMatrix()
+	{
+		Model = glm::mat4(1.0f);
+		Model = glm::translate(Model, glm::vec3(Position.x, Position.y, Position.z));
+		Model = glm::rotate(Model, Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+		Model = glm::rotate(Model, Rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+		Model = glm::rotate(Model, Rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+		Model = glm::scale(Model, glm::vec3(Scale.x, Scale.y, Scale.z));
 	}
 
 	void randomizeVertexColors()
