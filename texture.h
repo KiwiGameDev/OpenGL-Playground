@@ -27,15 +27,16 @@ struct Image
 	}
 };
 
-struct Texture
+class Texture
 {
-	unsigned int id;
+public:
+	unsigned int ID;
 
 	Texture(const std::string& filepath)
 	{
 		Image img(filepath);
-		glGenTextures(1, &id);
-		glBindTexture(GL_TEXTURE_2D, id);
+		glGenTextures(1, &ID);
+		glBindTexture(GL_TEXTURE_2D, ID);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -46,10 +47,22 @@ struct Texture
 
 	void bindTexture(unsigned int shaderID, int samplerID)
 	{
-		std::string textureName = "u_texture" + std::to_string(samplerID);
+		std::string textureName = getTextureName(samplerID);
 		GLint textureLoc = glGetUniformLocation(shaderID, textureName.c_str());
 		glUniform1i(textureLoc, samplerID);
 		glActiveTexture(GL_TEXTURE0 + samplerID);
-		glBindTexture(GL_TEXTURE_2D, id);
+		glBindTexture(GL_TEXTURE_2D, ID);
 	}
+
+private:
+	std::string getTextureName(int samplerID)
+	{
+		return "u_material." + textureNames[samplerID];
+	}
+
+	const std::string textureNames[2] =
+	{
+		"diffuse",
+		"specular"
+	};
 };

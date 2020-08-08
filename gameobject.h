@@ -83,6 +83,15 @@ struct GameObject
 			vertexNormals.emplace_back(x, y, z);
 		}
 
+		// Texture coordinates
+		const auto& texCoords = mesh.texcoords;
+		for (size_t i = 0; i < texCoords.size();)
+		{
+			float x = texCoords[i++];
+			float y = texCoords[i++];
+			vertexTexCoords.emplace_back(x, y);
+		}
+
 		// Indices
 		const auto& indices = mesh.indices;
 		for (size_t i = 0; i < indices.size();)
@@ -161,15 +170,18 @@ std::vector<GameObject> loadGameObjects(std::vector<std::string> inputFiles)
 		std::vector<tinyobj::shape_t> tempShapes;
 		std::vector<tinyobj::material_t> tempMaterials;
 
-		tinyobj::LoadObj(tempShapes, tempMaterials, err, inputfile.c_str(), nullptr);
+		std::string obj = inputfile + ".obj";
+		std::string mtl = inputfile + ".mtl";
+
+		tinyobj::LoadObj(tempShapes, tempMaterials, err, obj.c_str(), mtl.c_str());
 
 		if (!err.empty())
 			std::cerr << err << std::endl;
 		else
 			std::cout << "Loaded " << inputfile << " with shapes: " << tempShapes.size() << std::endl;
 
-		for (const auto& shape : tempShapes)
-			gameObjects.push_back(GameObject(shape));
+		for (int i = 0; i < tempShapes.size(); i++)
+			gameObjects.push_back(GameObject(tempShapes[0]));
 	}
 
 	return gameObjects;

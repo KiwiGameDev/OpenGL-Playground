@@ -39,9 +39,9 @@ void init(GLFWwindow* window)
 
 	std::vector<std::string> objFiles =
 	{
-		"assets/default_cube.obj",
-		//"assets/solid_snake.obj",
-		//"assets/tank.obj",
+		"assets/box",
+		//"assets/solid_snake",
+		//"assets/tank",
 	};
 
 	for (auto& gameObject : loadGameObjects(objFiles))
@@ -54,16 +54,19 @@ void init(GLFWwindow* window)
 		gameObject.init();
 	}
 
+	// Push textures
+	GameObject& box = gameObjects.front();
+	box.textures.push_back(Texture("assets/wood_box.png"));
+	box.textures.push_back(Texture("assets/wood_box_specular.png"));
 
 
 	// TEMP
-	GameObject& gameObject1 = gameObjects.front();
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, gameObject1.vertexPositionID);
+	glBindBuffer(GL_ARRAY_BUFFER, box.vertexPositionID);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gameObject1.indicesID);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, box.indicesID);
 
 
 	glBindVertexArray(0);
