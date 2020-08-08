@@ -13,60 +13,13 @@
 #include "shader.h"
 #include "vector3.h"
 #include "gameObject.h"
+#include "pointlight.h"
 #include "helpers.h"
 #include "camera.h"
 #include "assetmanager.h"
 
 #define WIDTH 800
 #define HEIGHT 800
-
-
-
-// TEMP
-class PointLight
-{
-public:
-	VertexArrayObject VAO;
-	glm::mat4 Model;
-	Vector3f Position;
-	Vector3f Rotation;
-	Vector3f Scale;
-
-	PointLight(VertexArrayObject vao)
-		: VAO(vao)
-	{
-		Model = glm::mat4(1.0f);
-		Position = Vector3f();
-		Rotation = Vector3f();
-		Scale = Vector3f(1.0f, 1.0f, 1.0f);
-	}
-
-	void bind()
-	{
-		glBindVertexArray(VAO.ID);
-	}
-
-	void updateModelMatrix()
-	{
-		Model = glm::mat4(1.0f);
-		Model = glm::translate(Model, glm::vec3(Position.x, Position.y, Position.z));
-		Model = glm::rotate(Model, Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-		Model = glm::rotate(Model, Rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-		Model = glm::rotate(Model, Rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-		Model = glm::scale(Model, glm::vec3(Scale.x, Scale.y, Scale.z));
-	}
-
-	glm::mat4 getLocalToClipMatrix(const glm::mat4& worldToClip)
-	{
-		return worldToClip * Model;
-	}
-
-	void draw()
-	{
-		VAO.draw();
-	}
-};
-
 
 Shader lightShader;
 Shader shader;
@@ -92,9 +45,9 @@ void init(GLFWwindow* window)
 	gameObjects.push_back(box);
 
 	GameObject box2 = GameObject(assetManager.getVertexArrayObject(0));
-	/*box2.bind();
+	box2.bind();
 	box2.textures.push_back(assetManager.getTexture(0));
-	box2.textures.push_back(assetManager.getTexture(1));*/
+	box2.textures.push_back(assetManager.getTexture(1));
 	box2.Position = Vector3f(-6.0f, 6.0f, 0.0f);
 	box2.Rotation = Vector3f(1.0f, 2.0f, 3.0f);
 	gameObjects.push_back(box2);
@@ -104,6 +57,11 @@ void init(GLFWwindow* window)
 	pointLight1.bind();
 	pointLight1.Scale = Vector3f(0.2f, 0.2f, 0.2f);
 	pointLights.push_back(pointLight1);
+
+	PointLight pointLight2(assetManager.getVertexArrayObject(0));
+	pointLight2.bind();
+	pointLight2.Scale = Vector3f(0.2f, 0.2f, 0.2f);
+	pointLights.push_back(pointLight2);
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -123,22 +81,26 @@ void display(GLFWwindow* window, double currentTime)
 	glm::mat4 projection = camera->getProjectionMatrix();
 	glm::mat4 worldToClip = projection * view;
 
-	// Light
-	PointLight& pointLight = pointLights.front();
-	pointLight.Position.x = sin(time) * 2;
-	pointLight.Position.y = -sin(time) * 2;
-	pointLight.Position.z = cos(time) * 2;
+	// Point lights
+	for (int i = 0; i < pointLights.size(); i++)
+	{
+		PointLight& pointLight = pointLights[i];
 
-	pointLight.bind();
-	pointLight.updateModelMatrix();
-	glm::mat4 localToClip = pointLight.getLocalToClipMatrix(worldToClip);
+		pointLight.Position.x = sin(time) * 2 * pow(-1, i);
+		pointLight.Position.y = -sin(time) * 2;
+		pointLight.Position.z = cos(time) * 2 * pow(-1, i);
 
-	lightShader.use();
-	lightShader.setMat4("u_localToClip", localToClip);
+		pointLight.bind();
+		pointLight.updateModelMatrix();
+		glm::mat4 localToClip = pointLight.getLocalToClipMatrix(worldToClip);
 
-	pointLight.draw();
+		lightShader.use();
+		lightShader.setMat4("u_localToClip", localToClip);
 
-	GameObject& box2 = gameObjects[1];
+		pointLight.draw();
+	}
+
+	GameObject& box2 = gameObjects.back();
 	box2.Rotation = Vector3f(time * 0.25f, time * 0.5f, time * 0.75f);
 
 	// Common across all objects. Perhaps loop across all shaders
@@ -163,13 +125,19 @@ void display(GLFWwindow* window, double currentTime)
 		shader.setFloat("u_dirLight.constant", 1.0f);
 
 		// Point lights
-		shader.setVec3("u_pointLights[0].position", pointLight.Position);
-		shader.setVec3("u_pointLights[0].ambient", 0.2f, 0.2f, 0.2f);
-		shader.setVec3("u_pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
-		shader.setVec3("u_pointLights[0].specular", 1.0f, 1.0f, 1.0f);
-		shader.setFloat("u_pointLights[0].constant", 1.0f);
-		shader.setFloat("u_pointLights[0].linear", 0.09f);
-		shader.setFloat("u_pointLights[0].quadratic", 0.032f);
+		for (int i = 0; i < pointLights.size(); i++)
+		{
+			const PointLight& pointLight = pointLights[i];
+			std::string strUniform = "u_pointLights[" + std::to_string(i) + "]";
+
+			shader.setVec3((strUniform + ".position").c_str(), pointLight.Position);
+			shader.setVec3((strUniform + ".ambient").c_str(), pointLight.Ambient);
+			shader.setVec3((strUniform + ".diffuse").c_str(), pointLight.Diffuse);
+			shader.setVec3((strUniform + ".specular").c_str(), pointLight.Specular);
+			shader.setFloat((strUniform + ".constant").c_str(), pointLight.Constant);
+			shader.setFloat((strUniform + ".linear").c_str(), pointLight.Linear);
+			shader.setFloat((strUniform + ".quadratic").c_str(), pointLight.Quadratic);
+		}
 
 		// Spot Light
 		shader.setVec3("u_spotLight.position", camera->Position);

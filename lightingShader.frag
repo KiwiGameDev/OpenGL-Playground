@@ -50,7 +50,7 @@ struct SpotLight
     float quadratic;
 };
 
-#define NR_POINT_LIGHTS 1
+#define NR_POINT_LIGHTS 2
 
 uniform Material u_material;
 uniform DirLight u_dirLight;
