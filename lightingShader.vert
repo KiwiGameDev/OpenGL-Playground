@@ -1,8 +1,7 @@
 #version 430
 layout (location = 0) in vec3 v_position;
-layout (location = 1) in vec3 v_color;
-layout (location = 2) in vec3 v_normal;
-layout (location = 3) in vec2 v_texCoords;
+layout (location = 1) in vec3 v_normal;
+layout (location = 2) in vec2 v_texCoords;
 
 out vec3 worldPos;
 out vec3 normal;

@@ -15,6 +15,7 @@
 #include "gameObject.h"
 #include "helpers.h"
 #include "camera.h"
+#include "assetmanager.h"
 
 #define WIDTH 800
 #define HEIGHT 800
@@ -22,58 +23,87 @@
 
 
 // TEMP
-unsigned int lightVAO;
-glm::vec3 lightPos(2.0f, 2.0f, 2.0f);
+class PointLight
+{
+public:
+	VertexArrayObject VAO;
+	glm::mat4 Model;
+	Vector3f Position;
+	Vector3f Rotation;
+	Vector3f Scale;
+
+	PointLight(VertexArrayObject vao)
+		: VAO(vao)
+	{
+		Model = glm::mat4(1.0f);
+		Position = Vector3f();
+		Rotation = Vector3f();
+		Scale = Vector3f(1.0f, 1.0f, 1.0f);
+	}
+
+	void bind()
+	{
+		glBindVertexArray(VAO.ID);
+	}
+
+	void updateModelMatrix()
+	{
+		Model = glm::mat4(1.0f);
+		Model = glm::translate(Model, glm::vec3(Position.x, Position.y, Position.z));
+		Model = glm::rotate(Model, Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+		Model = glm::rotate(Model, Rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+		Model = glm::rotate(Model, Rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+		Model = glm::scale(Model, glm::vec3(Scale.x, Scale.y, Scale.z));
+	}
+
+	glm::mat4 getLocalToClipMatrix(const glm::mat4& worldToClip)
+	{
+		return worldToClip * Model;
+	}
+
+	void draw()
+	{
+		VAO.draw();
+	}
+};
 
 
 Shader lightShader;
 Shader shader;
 std::vector<GameObject> gameObjects;
+std::vector<PointLight> pointLights;
 Camera* camera = new CameraPerspective((float)WIDTH / (float)HEIGHT, glm::vec3(0, 0, 5.0f));
 //Camera* camera = new CameraOrthographic({ WIDTH * 0.01f, HEIGHT * 0.01f }, glm::vec3(0, 0, 5.0f));
 
 void init(GLFWwindow* window)
 {
+	// Load shaders
 	lightShader = Shader("lightingShader.vert", "lightShader.frag");
 	shader = Shader("lightingShader.vert", "lightingShader.frag");
 
-	std::vector<std::string> objFiles =
-	{
-		"assets/box",
-		"assets/box",
-		//"assets/solid_snake",
-		//"assets/tank",
-	};
+	// Load assets
+	AssetManager& assetManager = AssetManager::getInstance();
 
-	for (auto& gameObject : loadGameObjects(objFiles))
-	{
-		gameObjects.push_back(gameObject);
-	}
+	// Load gameobjects
+	GameObject box = GameObject(assetManager.getVertexArrayObject(0));
+	box.bind();
+	box.textures.push_back(assetManager.getTexture(0));
+	box.textures.push_back(assetManager.getTexture(1));
+	gameObjects.push_back(box);
 
-	for (GameObject& gameObject : gameObjects)
-	{
-		gameObject.init();
-	}
-
-	// Push textures
-	GameObject& box = gameObjects.front();
-	box.textures.push_back(Texture("assets/wood_box.png"));
-	box.textures.push_back(Texture("assets/wood_box_specular.png"));
-	GameObject& box2 = gameObjects[1];
-	box2.textures.push_back(Texture("assets/wood_box.png"));
-	box2.textures.push_back(Texture("assets/wood_box_specular.png"));
+	GameObject box2 = GameObject(assetManager.getVertexArrayObject(0));
+	/*box2.bind();
+	box2.textures.push_back(assetManager.getTexture(0));
+	box2.textures.push_back(assetManager.getTexture(1));*/
 	box2.Position = Vector3f(-6.0f, 6.0f, 0.0f);
 	box2.Rotation = Vector3f(1.0f, 2.0f, 3.0f);
+	gameObjects.push_back(box2);
 
-
-	// TEMP
-	glGenVertexArrays(1, &lightVAO);
-	glBindVertexArray(lightVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, box.vertexPositionID);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, box.indicesID);
-
+	// Load lights
+	PointLight pointLight1(assetManager.getVertexArrayObject(0));
+	pointLight1.bind();
+	pointLight1.Scale = Vector3f(0.2f, 0.2f, 0.2f);
+	pointLights.push_back(pointLight1);
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -94,29 +124,22 @@ void display(GLFWwindow* window, double currentTime)
 	glm::mat4 worldToClip = projection * view;
 
 	// Light
-	lightPos.x = sin(time) * 2;
-	lightPos.y = -sin(time) * 2;
-	lightPos.z = cos(time) * 2;
+	PointLight& pointLight = pointLights.front();
+	pointLight.Position.x = sin(time) * 2;
+	pointLight.Position.y = -sin(time) * 2;
+	pointLight.Position.z = cos(time) * 2;
 
-	glBindVertexArray(lightVAO);
-	glm::mat4 lightModel = glm::mat4(1.0f);
-	lightModel = glm::translate(lightModel, lightPos);
-	lightModel = glm::scale(lightModel, glm::vec3(0.2f));
-	glm::mat4 localToClip = worldToClip * lightModel;
+	pointLight.bind();
+	pointLight.updateModelMatrix();
+	glm::mat4 localToClip = pointLight.getLocalToClipMatrix(worldToClip);
 
 	lightShader.use();
 	lightShader.setMat4("u_localToClip", localToClip);
 
-	glDrawElements(GL_TRIANGLES, 12 * 3, GL_UNSIGNED_INT, 0);
-	// Light END
-
-
+	pointLight.draw();
 
 	GameObject& box2 = gameObjects[1];
 	box2.Rotation = Vector3f(time * 0.25f, time * 0.5f, time * 0.75f);
-
-
-
 
 	// Common across all objects. Perhaps loop across all shaders
 	shader.use();
@@ -125,7 +148,7 @@ void display(GLFWwindow* window, double currentTime)
 
 	for (GameObject& gameObject : gameObjects)
 	{
-		gameObject.bindVAO();
+		gameObject.bind();
 		gameObject.updateModelMatrix();
 		gameObject.bindTextures(shader.ID);
 
@@ -140,7 +163,7 @@ void display(GLFWwindow* window, double currentTime)
 		shader.setFloat("u_dirLight.constant", 1.0f);
 
 		// Point lights
-		shader.setVec3("u_pointLights[0].position", lightPos);
+		shader.setVec3("u_pointLights[0].position", pointLight.Position);
 		shader.setVec3("u_pointLights[0].ambient", 0.2f, 0.2f, 0.2f);
 		shader.setVec3("u_pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
 		shader.setVec3("u_pointLights[0].specular", 1.0f, 1.0f, 1.0f);
@@ -151,8 +174,8 @@ void display(GLFWwindow* window, double currentTime)
 		// Spot Light
 		shader.setVec3("u_spotLight.position", camera->Position);
 		shader.setVec3("u_spotLight.direction", camera->Front);
-		shader.setFloat("u_spotLight.cutoff", glm::cos(glm::radians(12.5f)));
-		shader.setFloat("u_spotLight.outerCutoff", glm::cos(glm::radians(17.5f)));
+		shader.setFloat("u_spotLight.cutoff", glm::cos(glm::radians(17.5f)));
+		shader.setFloat("u_spotLight.outerCutoff", glm::cos(glm::radians(25.0f)));
 		shader.setVec3("u_spotLight.diffuse", 0.8f, 0.8f, 0.8f);
 		shader.setVec3("u_spotLight.specular", 1.0f, 1.0f, 1.0f);
 		shader.setFloat("u_spotLight.constant", 1.0f);

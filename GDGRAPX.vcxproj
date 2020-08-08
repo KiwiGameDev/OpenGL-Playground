@@ -163,6 +163,7 @@
     <None Include="defaultShader.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="assetmanager.h" />
     <ClInclude Include="gameobject.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="shader.h" />
@@ -171,6 +172,7 @@
     <ClInclude Include="tiny_obj_loader.h" />
     <ClInclude Include="vector2.h" />
     <ClInclude Include="vector3.h" />
+    <ClInclude Include="vertexarrayobject.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
