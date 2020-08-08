@@ -57,7 +57,7 @@ void init(GLFWwindow* window)
 
 
 	// TEMP
-	GameObject& gameObject1 = gameObjects.back();
+	GameObject& gameObject1 = gameObjects.front();
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, gameObject1.vertexPositionID);
@@ -77,6 +77,7 @@ void display(GLFWwindow* window, double currentTime)
 
 	shader.use();
 
+	// Common variables
 	float time = (float)currentTime;
 	float directionalLight[3] = { 0, sin(time), cos(time) };
 
@@ -86,36 +87,9 @@ void display(GLFWwindow* window, double currentTime)
 	glm::mat4 projection = camera->getProjectionMatrix();
 	glm::mat4 worldToClip = projection * view;
 
-	for (GameObject& gameObject : gameObjects)
-	{
-		glBindVertexArray(gameObject.vaoID);
-
-		glm::mat4 localToClip = worldToClip * gameObject.model;
-
-		shader.use();
-		shader.setMat4("u_model", gameObject.model);
-		shader.setMat4("u_localToClip", localToClip);
-		shader.setFloat("u_time", time);
-		shader.setVec3("u_directionalLight", directionalLight);
-
-		float objectColor[] = { 1.0f, 0.5f, 0.31f };
-		float lightColor[] = { 1.0f, 1.0f, 1.0f };
-
-		shader.setVec3("u_cameraPos", camera->Position);
-		shader.setVec3("u_objectColor", objectColor);
-		shader.setVec3("u_lightColor", lightColor);
-		shader.setVec3("u_lightPos", lightPos);
-		shader.setInt("u_shininess", 64);
-
-		gameObject.bindTextures(shader.ID);
-
-		glDrawElements(GL_TRIANGLES, gameObject.indices.size() * 3, GL_UNSIGNED_INT, 0);
-	}
 
 
-
-
-	// TEMP
+	// Light
 	lightPos.x = sin(glfwGetTime()) * 2;
 	lightPos.y = -sin(glfwGetTime()) * 2;
 	lightPos.z = cos(glfwGetTime()) * 2;
@@ -133,6 +107,37 @@ void display(GLFWwindow* window, double currentTime)
 
 
 
+	for (GameObject& gameObject : gameObjects)
+	{
+		glBindVertexArray(gameObject.vaoID);
+
+		glm::mat4 localToClip = worldToClip * gameObject.model;
+
+		shader.use();
+		shader.setFloat("u_time", time);
+		shader.setMat4("u_model", gameObject.model);
+		shader.setMat4("u_localToClip", localToClip);
+
+		float objectColor[] = { 1.0f, 0.5f, 0.31f };
+		float lightColor[] = { 1.0f, 1.0f, 1.0f };
+
+		shader.setVec3("u_cameraPos", camera->Position);
+		shader.setVec3("u_objectColor", objectColor);
+
+		shader.setVec3("u_light.position", lightPos);
+		shader.setVec3("u_light.ambient", 0.2f, 0.2f, 0.2f);
+		shader.setVec3("u_light.diffuse", 0.8f, 0.8f, 0.8f);
+		shader.setVec3("u_light.specular", 1.0f, 1.0f, 1.0f);
+
+		shader.setVec3("u_material.ambient", 1.0f, 0.5f, 0.31f);
+		shader.setVec3("u_material.diffuse", 1.0f, 0.5f, 0.31f);
+		shader.setVec3("u_material.specular", 0.5f, 0.5f, 0.5f);
+		shader.setFloat("u_material.shininess", 32.0f);
+
+		gameObject.bindTextures(shader.ID);
+
+		glDrawElements(GL_TRIANGLES, gameObject.indices.size() * 3, GL_UNSIGNED_INT, 0);
+	}
 
 	glBindVertexArray(0);
 	glUseProgram(0);
