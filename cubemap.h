@@ -13,8 +13,8 @@
 class CubeMap
 {
 public:
-	CubeMap(VertexArrayObject vao, const std::vector<std::string>& faces)
-		: vao(vao)
+	CubeMap(VertexArrayObject vao, Shader shader, const std::vector<std::string>& faces)
+		: vao(vao), shader(shader)
 	{
 		assert(faces.size() == 6);
 
@@ -50,9 +50,11 @@ public:
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	}
 
-	void draw() const
+	void draw(glm::mat4 mvp) const
 	{
 		glDepthMask(GL_FALSE);
+		shader.use();
+		shader.setMat4("u_MVP", mvp);
 		vao.bind();
 		glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
@@ -61,5 +63,6 @@ public:
 
 private:
 	VertexArrayObject vao;
+	Shader shader;
 	unsigned int textureID;
 };

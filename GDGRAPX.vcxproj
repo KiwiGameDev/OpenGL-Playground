@@ -167,11 +167,15 @@
   <ItemGroup>
     <ClInclude Include="assetmanager.h" />
     <ClInclude Include="cubemap.h" />
+    <ClInclude Include="directionallight.h" />
     <ClInclude Include="gameobject.h" />
     <ClInclude Include="helpers.h" />
+    <ClInclude Include="drawable.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="pointlight.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="shadermanager.h" />
+    <ClInclude Include="spotlight.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="tiny_obj_loader.h" />

@@ -1,6 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
-#include <glm/ext/matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 class Transformable
 {
@@ -28,8 +28,8 @@ public:
 		Model = glm::scale(Model, glm::vec3(Scale.x, Scale.y, Scale.z));
 	}
 
-	glm::mat4 getMVP(const glm::mat4& worldToClip)
+	glm::mat4 getMVP(const glm::mat4& viewProjection) const
 	{
-		return worldToClip * Model;
+		return viewProjection * Model;
 	}
 };

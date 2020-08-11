@@ -6,6 +6,7 @@
 
 #include <iostream>
 
+#include "shadermanager.h"
 #include "vertexarrayobject.h"
 #include "texture.h"
 #include "cubemap.h"
@@ -189,7 +190,8 @@ private:
 
 	void loadCubemaps()
 	{
-		cubeMaps.emplace_back(vaos.front(), cubemapFilepaths);
+		Shader skyboxShader = ShaderManager::getInstance().getShader("SkyboxShader");
+		cubeMaps.emplace_back(vaos.front(), skyboxShader, cubemapFilepaths);
 	}
 
 public:

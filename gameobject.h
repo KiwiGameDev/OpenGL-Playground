@@ -5,35 +5,28 @@
 #include <vector>
 
 #include "texture.h"
-#include "helpers.h"
+#include "shader.h"
 #include "AssetManager.h"
 #include "transformable.h"
+#include "drawable.h"
 
-class GameObject : public Transformable
+class GameObject : public Transformable, public Drawable
 {
 public:
-	VertexArrayObject VAO;
 	std::vector<Texture> textures;
 
-	GameObject(VertexArrayObject VAO)
-		: VAO(VAO)
+	GameObject(VertexArrayObject vao, Shader shader)
+		: Drawable(vao, shader) { }
+
+	void updateShaderUniforms(glm::mat4 viewProjection) const
 	{
-		textures = std::vector<Texture>();
+		shader.setMat4("u_model", Model);
+		shader.setMat4("u_localToClip", getMVP(viewProjection));
 	}
 
-	void bind()
-	{
-		VAO.bind();
-	}
-
-	void bindTextures(unsigned int shaderID)
+	void bindTextures() const
 	{
 		for (size_t i = 0; i < textures.size(); i++)
-			textures[i].bindTexture(shaderID, i);
-	}
-
-	void draw()
-	{
-		VAO.draw();
+			textures[i].bindTexture(shader.ID, i);
 	}
 };

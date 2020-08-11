@@ -1,10 +1,12 @@
+#pragma once
 #include <GL/glew.h>
 #include <glfw/glfw3.h>
 #include <glm/glm.hpp>
+
+#include <iostream>
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <iostream>
 
 class Shader
 {
@@ -78,7 +80,7 @@ public:
         return glGetAttribLocation(ID, name);
     }
 
-    void use()
+    void use() const
     {
         glUseProgram(ID);
     }

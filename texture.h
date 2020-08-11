@@ -51,7 +51,7 @@ public:
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 
-	void bindTexture(unsigned int shaderID, int samplerID)
+	void bindTexture(unsigned int shaderID, int samplerID) const
 	{
 		std::string textureName(TypeShaderStrings[(int)textureType]);
 		GLint textureLoc = glGetUniformLocation(shaderID, textureName.c_str());

@@ -8,43 +8,47 @@
 #include <string>
 #include <fstream>
 
-#include "shader.h"
 #include "gameObject.h"
 #include "pointlight.h"
+#include "directionallight.h"
 #include "helpers.h"
 #include "camera.h"
 #include "assetmanager.h"
+#include "shadermanager.h"
 
 #define WIDTH 800
 #define HEIGHT 800
 
 Shader lightShader;
-Shader skyboxShader;
-Shader shader;
+Shader mainShader;
+
 std::vector<GameObject> gameObjects;
+DirectionalLight directionalLight;
 std::vector<PointLight> pointLights;
+SpotLight spotLight;
+
 Camera* camera = new CameraPerspective((float)WIDTH / (float)HEIGHT, glm::vec3(0, 0, 5.0f));
 //Camera* camera = new CameraOrthographic({ WIDTH * 0.01f, HEIGHT * 0.01f }, glm::vec3(0, 0, 5.0f));
 
 void init(GLFWwindow* window)
 {
 	// Load shaders
-	lightShader = Shader("lightingShader.vert", "lightShader.frag");
-	skyboxShader = Shader("skyboxShader.vert", "skyboxShader.frag");
-	shader = Shader("lightingShader.vert", "lightingShader.frag");
+	ShaderManager& shaderManager = ShaderManager::getInstance();
+	lightShader = shaderManager.getShader("LightShader");
+	mainShader = shaderManager.getShader("LightingShader");
 
 	// Load assets
 	AssetManager& assetManager = AssetManager::getInstance();
 
 	// Load gameobjects
-	GameObject box = GameObject(assetManager.getVertexArrayObject(0));
+	GameObject box = GameObject(assetManager.getVertexArrayObject(0), mainShader);
 	box.bind();
 	box.textures.push_back(assetManager.getTexture(0));
 	box.textures.push_back(assetManager.getTexture(1));
 	box.textures.push_back(assetManager.getTexture(2));
 	gameObjects.push_back(box);
 
-	GameObject box2 = GameObject(assetManager.getVertexArrayObject(0));
+	GameObject box2 = GameObject(assetManager.getVertexArrayObject(0), mainShader);
 	box2.bind();
 	box2.textures.push_back(assetManager.getTexture(0));
 	box2.textures.push_back(assetManager.getTexture(1));
@@ -54,7 +58,7 @@ void init(GLFWwindow* window)
 	gameObjects.push_back(box2);
 
 	// Load lights
-	PointLight pointLight(assetManager.getVertexArrayObject(0));
+	PointLight pointLight(assetManager.getVertexArrayObject(0), lightShader);
 	pointLight.bind();
 	pointLight.Scale = glm::vec3(0.2f, 0.2f, 0.2f);
 	pointLights.push_back(pointLight);
@@ -73,16 +77,26 @@ void display(GLFWwindow* window, double currentTime)
 	// Common variables
 	float time = (float)currentTime;
 
+	ShaderManager::getInstance().updateShadersCommon(time, camera->Position);
+
 	// Camera stuff
 	glm::mat4 view = camera->getViewMatrix();
 	glm::mat4 projection = camera->getProjectionMatrix();
-	glm::mat4 worldToClip = projection * view;
+	glm::mat4 viewProjection = projection * view;
 
-	skyboxShader.use();
-	skyboxShader.setMat4("u_view", glm::mat4(glm::mat3(camera->getViewMatrix())));
-	skyboxShader.setMat4("u_projection", camera->getProjectionMatrix());
-	AssetManager::getInstance().getCubeMap(0).draw();
+	// Skybox
+	glm::mat4 skyboxView = glm::mat4(glm::mat3(view));
+	glm::mat4 skyboxMVP = projection * skyboxView;
+	CubeMap skybox = AssetManager::getInstance().getCubeMap(0);
+	skybox.draw(skyboxMVP);
 
+	// Update game objects
+	GameObject& box1 = gameObjects.front();
+	box1.Rotation = glm::vec3(0, time * 0.5f, 0);
+	GameObject& box2 = gameObjects.back();
+	box2.Rotation = glm::vec3(time * 0.25f, time * 0.5f, time * 0.75f);
+
+	// Update lighting
 	// Point lights
 	for (int i = 0; i < pointLights.size(); i++)
 	{
@@ -94,67 +108,25 @@ void display(GLFWwindow* window, double currentTime)
 
 		pointLight.bind();
 		pointLight.updateModelMatrix();
-		glm::mat4 localToClip = pointLight.getMVP(worldToClip);
-
-		lightShader.use();
-		lightShader.setMat4("u_localToClip", localToClip);
+		pointLight.updateShaderUniforms(viewProjection);
 
 		pointLight.draw();
 	}
 
-	GameObject& box1 = gameObjects.front();
-	box1.Rotation = glm::vec3(0, time * 0.5f, 0);
+	// Spot light
+	spotLight.Position = camera->Position;
+	spotLight.Direction = camera->Front;
 
-	GameObject& box2 = gameObjects.back();
-	box2.Rotation = glm::vec3(time * 0.25f, time * 0.5f, time * 0.75f);
-
-	// Common across all objects. Perhaps loop across all shaders
-	shader.use();
-	shader.setFloat("u_time", time);
-	shader.setVec3("u_viewPos", camera->Position);
+	ShaderManager::getInstance().updateShadersLighting(directionalLight, pointLights, spotLight);
 
 	for (GameObject& gameObject : gameObjects)
 	{
 		gameObject.bind();
 		gameObject.updateModelMatrix();
-		gameObject.bindTextures(shader.ID);
+		gameObject.updateShaderUniforms(viewProjection);
+		gameObject.bindTextures();
 
-		shader.use();
-		shader.setMat4("u_model", gameObject.Model);
-		shader.setMat4("u_localToClip", gameObject.getMVP(worldToClip));
-
-		// Directional light
-		shader.setVec3("u_dirLight.direction", -0.2f, -1.0f, -0.3f);
-		shader.setVec3("u_dirLight.diffuse", 0.8f, 0.8f, 0.8f);
-		shader.setVec3("u_dirLight.specular", 1.0f, 1.0f, 1.0f);
-		shader.setFloat("u_dirLight.constant", 1.0f);
-
-		// Point lights
-		for (int i = 0; i < pointLights.size(); i++)
-		{
-			const PointLight& pointLight = pointLights[i];
-			std::string strUniform = "u_pointLights[" + std::to_string(i) + "]";
-
-			shader.setVec3((strUniform + ".position").c_str(), pointLight.Position);
-			shader.setVec3((strUniform + ".ambient").c_str(), pointLight.Ambient);
-			shader.setVec3((strUniform + ".diffuse").c_str(), pointLight.Diffuse);
-			shader.setVec3((strUniform + ".specular").c_str(), pointLight.Specular);
-			shader.setFloat((strUniform + ".constant").c_str(), pointLight.Constant);
-			shader.setFloat((strUniform + ".linear").c_str(), pointLight.Linear);
-			shader.setFloat((strUniform + ".quadratic").c_str(), pointLight.Quadratic);
-		}
-
-		// Spot Light
-		shader.setVec3("u_spotLight.position", camera->Position);
-		shader.setVec3("u_spotLight.direction", camera->Front);
-		shader.setFloat("u_spotLight.cutoff", glm::cos(glm::radians(17.5f)));
-		shader.setFloat("u_spotLight.outerCutoff", glm::cos(glm::radians(25.0f)));
-		shader.setVec3("u_spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-		shader.setVec3("u_spotLight.specular", 1.0f, 1.0f, 1.0f);
-		shader.setFloat("u_spotLight.constant", 1.0f);
-		shader.setFloat("u_spotLight.linear", 0.15f);
-		shader.setFloat("u_spotLight.quadratic", 0.1f);
-
+		Shader shader = gameObject.shader;
 		shader.setFloat("u_material.shininess", 32.0f);
 
 		gameObject.draw();

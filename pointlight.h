@@ -3,13 +3,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "transformable.h"
+#include "drawable.h"
 #include "vertexarrayobject.h"
 
-class PointLight : public Transformable
+class PointLight : public Transformable, public Drawable
 {
 public:
-	VertexArrayObject VAO;
-
 	glm::vec3 Ambient;
 	glm::vec3 Diffuse;
 	glm::vec3 Specular;
@@ -18,8 +17,8 @@ public:
 	float Linear;
 	float Quadratic;
 
-	PointLight(VertexArrayObject vao)
-		: VAO(vao)
+	PointLight(VertexArrayObject vao, Shader shader)
+		: Drawable(vao, shader)
 	{
 		Ambient = { 0.2f, 0.2f, 0.2f };
 		Diffuse = { 0.8f, 0.8f, 0.8f };
@@ -30,13 +29,20 @@ public:
 		Quadratic = 0.032f;
 	}
 
-	void bind()
+	void updateShaderUniforms(glm::mat4 viewProjection) const
 	{
-		glBindVertexArray(VAO.ID);
+		shader.setMat4("u_localToClip", getMVP(viewProjection));
 	}
 
-	void draw()
+	void setOtherShaderUniforms(Shader shader, int index) const
 	{
-		VAO.draw();
+		std::string strUniform = "u_pointLights[" + std::to_string(index) + "]";
+		shader.setVec3((strUniform + ".position").c_str(), Position);
+		shader.setVec3((strUniform + ".ambient").c_str(), Ambient);
+		shader.setVec3((strUniform + ".diffuse").c_str(), Diffuse);
+		shader.setVec3((strUniform + ".specular").c_str(), Specular);
+		shader.setFloat((strUniform + ".constant").c_str(), Constant);
+		shader.setFloat((strUniform + ".linear").c_str(), Linear);
+		shader.setFloat((strUniform + ".quadratic").c_str(), Quadratic);
 	}
 };
