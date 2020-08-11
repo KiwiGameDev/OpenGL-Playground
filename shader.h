@@ -6,8 +6,6 @@
 #include <sstream>
 #include <iostream>
 
-#include "vector3.h"
-
 class Shader
 {
 public:
@@ -118,11 +116,6 @@ public:
     void setVec3(const char* name, float x, float y, float z) const
     {
         glUniform3f(glGetUniformLocation(ID, name), x, y, z);
-    }
-    
-    void setVec3(const char* name, Vector3f vec3) const
-    {
-        glUniform3f(glGetUniformLocation(ID, name), vec3.x, vec3.y, vec3.z);
     }
 
     void setVec3(const char* name, glm::vec3 vec3) const

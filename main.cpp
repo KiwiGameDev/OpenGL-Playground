@@ -11,7 +11,6 @@
 #include <fstream>
 
 #include "shader.h"
-#include "vector3.h"
 #include "gameObject.h"
 #include "pointlight.h"
 #include "helpers.h"
@@ -50,14 +49,14 @@ void init(GLFWwindow* window)
 	box2.textures.push_back(assetManager.getTexture(0));
 	box2.textures.push_back(assetManager.getTexture(1));
 	box2.textures.push_back(assetManager.getTexture(2));
-	box2.Position = Vector3f(-4.0f, 4.0f, 0.0f);
-	box2.Rotation = Vector3f(1.0f, 2.0f, 3.0f);
+	box2.Position = glm::vec3(-4.0f, 4.0f, 0.0f);
+	box2.Rotation = glm::vec3(1.0f, 2.0f, 3.0f);
 	gameObjects.push_back(box2);
 
 	// Load lights
 	PointLight pointLight(assetManager.getVertexArrayObject(0));
 	pointLight.bind();
-	pointLight.Scale = Vector3f(0.2f, 0.2f, 0.2f);
+	pointLight.Scale = glm::vec3(0.2f, 0.2f, 0.2f);
 	pointLights.push_back(pointLight);
 	pointLight.Position.x -= 2.0;
 	pointLights.push_back(pointLight);
@@ -91,7 +90,7 @@ void display(GLFWwindow* window, double currentTime)
 
 		pointLight.bind();
 		pointLight.updateModelMatrix();
-		glm::mat4 localToClip = pointLight.getLocalToClipMatrix(worldToClip);
+		glm::mat4 localToClip = pointLight.getMVP(worldToClip);
 
 		lightShader.use();
 		lightShader.setMat4("u_localToClip", localToClip);
@@ -100,10 +99,10 @@ void display(GLFWwindow* window, double currentTime)
 	}
 
 	GameObject& box1 = gameObjects.front();
-	box1.Rotation = Vector3f(0, time * 0.5f, 0);
+	box1.Rotation = glm::vec3(0, time * 0.5f, 0);
 
 	GameObject& box2 = gameObjects.back();
-	box2.Rotation = Vector3f(time * 0.25f, time * 0.5f, time * 0.75f);
+	box2.Rotation = glm::vec3(time * 0.25f, time * 0.5f, time * 0.75f);
 
 	// Common across all objects. Perhaps loop across all shaders
 	shader.use();
@@ -118,7 +117,7 @@ void display(GLFWwindow* window, double currentTime)
 
 		shader.use();
 		shader.setMat4("u_model", gameObject.Model);
-		shader.setMat4("u_localToClip", gameObject.getLocalToClipMatrix(worldToClip));
+		shader.setMat4("u_localToClip", gameObject.getMVP(worldToClip));
 
 		// Directional light
 		shader.setVec3("u_dirLight.direction", -0.2f, -1.0f, -0.3f);
@@ -176,7 +175,7 @@ void processKeyInput(GLFWwindow* window, float deltaTime)
 void mouseCallback(GLFWwindow* window, double dPosX, double dPosY)
 {
 	static bool isFirstMouseCapture = true;
-	static Vector2f lastMousePos = Vector2f(WIDTH * 0.5f, HEIGHT * 0.5f);
+	static glm::vec2 lastMousePos = glm::vec2(WIDTH * 0.5f, HEIGHT * 0.5f);
 
 	float xPos = (float)dPosX;
 	float yPos = (float)dPosY;

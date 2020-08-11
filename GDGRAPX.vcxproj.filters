@@ -46,16 +46,10 @@
     <ClInclude Include="helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vector3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="gameobject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stb_image.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vector2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="texture.h">
@@ -71,6 +65,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pointlight.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="transformable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
