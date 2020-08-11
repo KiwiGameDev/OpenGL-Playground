@@ -10,11 +10,15 @@ public:
 	unsigned int VertexTexCoordsID;
 	unsigned int VertexNormalsID;
 	unsigned int VertexTangentsID;
-	unsigned int VertexBitangentsID;
 	unsigned int IndicesID;
 	size_t IndicesSize;
 
-	void draw()
+	void bind() const
+	{
+		glBindVertexArray(ID);
+	}
+
+	void draw() const
 	{
 		glDrawElements(GL_TRIANGLES, IndicesSize, GL_UNSIGNED_INT, 0);
 	}

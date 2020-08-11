@@ -6,8 +6,9 @@
 
 #include <iostream>
 
-#include "texture.h"
 #include "vertexarrayobject.h"
+#include "texture.h"
+#include "cubemap.h"
 
 class AssetManager
 {
@@ -28,6 +29,11 @@ public:
 		return textures[index];
 	}
 
+	const CubeMap& getCubeMap(int index)
+	{
+		return cubeMaps[index];
+	}
+
 private:
 	const std::string objfiles[1] =
 	{
@@ -42,14 +48,26 @@ private:
 		{ "assets/brickwall_normal.jpg", TextureType::Normal },
 		{ "assets/brickwall_specular.jpg", TextureType::Specular }
 	};
+	
+	const std::vector<std::string> cubemapFilepaths =
+	{
+		"assets/cubemap/right.jpg",
+		"assets/cubemap/left.jpg",
+		"assets/cubemap/top.jpg",
+		"assets/cubemap/bottom.jpg",
+		"assets/cubemap/front.jpg",
+		"assets/cubemap/back.jpg"
+	};
 
 	std::vector<VertexArrayObject> vaos;
 	std::vector<Texture> textures;
+	std::vector<CubeMap> cubeMaps;
 
 	AssetManager()
 	{
 		loadObjFiles();
 		loadTextureFiles();
+		loadCubemaps();
 	}
 
 	void loadObjFiles()
@@ -167,6 +185,11 @@ private:
 	{
 		for (const TextureAsset& textureAsset : textureAssets)
 			textures.push_back(Texture(textureAsset));
+	}
+
+	void loadCubemaps()
+	{
+		cubeMaps.emplace_back(vaos.front(), cubemapFilepaths);
 	}
 
 public:

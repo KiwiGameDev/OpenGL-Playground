@@ -19,6 +19,7 @@
 #define HEIGHT 800
 
 Shader lightShader;
+Shader skyboxShader;
 Shader shader;
 std::vector<GameObject> gameObjects;
 std::vector<PointLight> pointLights;
@@ -29,6 +30,7 @@ void init(GLFWwindow* window)
 {
 	// Load shaders
 	lightShader = Shader("lightingShader.vert", "lightShader.frag");
+	skyboxShader = Shader("skyboxShader.vert", "skyboxShader.frag");
 	shader = Shader("lightingShader.vert", "lightingShader.frag");
 
 	// Load assets
@@ -72,10 +74,14 @@ void display(GLFWwindow* window, double currentTime)
 	float time = (float)currentTime;
 
 	// Camera stuff
-	float radius = 2.0f;
 	glm::mat4 view = camera->getViewMatrix();
 	glm::mat4 projection = camera->getProjectionMatrix();
 	glm::mat4 worldToClip = projection * view;
+
+	skyboxShader.use();
+	skyboxShader.setMat4("u_view", glm::mat4(glm::mat3(camera->getViewMatrix())));
+	skyboxShader.setMat4("u_projection", camera->getProjectionMatrix());
+	AssetManager::getInstance().getCubeMap(0).draw();
 
 	// Point lights
 	for (int i = 0; i < pointLights.size(); i++)

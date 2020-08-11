@@ -38,6 +38,12 @@
     <None Include="oldShader.vert">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="skyboxShader.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="skyboxShader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tiny_obj_loader.h">
@@ -71,6 +77,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cubemap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

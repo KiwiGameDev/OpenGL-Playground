@@ -161,9 +161,12 @@
     <None Include="lightingShader.frag" />
     <None Include="lightingShader.vert" />
     <None Include="oldShader.vert" />
+    <None Include="skyboxShader.frag" />
+    <None Include="skyboxShader.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="assetmanager.h" />
+    <ClInclude Include="cubemap.h" />
     <ClInclude Include="gameobject.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="image.h" />

@@ -13,7 +13,6 @@ class GameObject : public Transformable
 {
 public:
 	VertexArrayObject VAO;
-
 	std::vector<Texture> textures;
 
 	GameObject(VertexArrayObject VAO)
@@ -24,7 +23,7 @@ public:
 
 	void bind()
 	{
-		glBindVertexArray(VAO.ID);
+		VAO.bind();
 	}
 
 	void bindTextures(unsigned int shaderID)
