@@ -60,9 +60,10 @@ private:
 		return "u_material." + textureNames[samplerID];
 	}
 
-	const std::string textureNames[2] =
+	const std::string textureNames[3] =
 	{
-		"diffuse",
-		"specular"
+		"diffuseMap",
+		"normalMap",
+		"specularMap"
 	};
 };

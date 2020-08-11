@@ -156,16 +156,17 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="camera.h" />
-    <None Include="defaultShader.frag" />
+    <None Include="oldShader.frag" />
     <None Include="lightShader.frag" />
     <None Include="lightingShader.frag" />
     <None Include="lightingShader.vert" />
-    <None Include="defaultShader.vert" />
+    <None Include="oldShader.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="assetmanager.h" />
     <ClInclude Include="gameobject.h" />
     <ClInclude Include="helpers.h" />
+    <ClInclude Include="pointlight.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="texture.h" />

@@ -42,26 +42,25 @@ void init(GLFWwindow* window)
 	box.bind();
 	box.textures.push_back(assetManager.getTexture(0));
 	box.textures.push_back(assetManager.getTexture(1));
+	box.textures.push_back(assetManager.getTexture(2));
 	gameObjects.push_back(box);
 
 	GameObject box2 = GameObject(assetManager.getVertexArrayObject(0));
 	box2.bind();
 	box2.textures.push_back(assetManager.getTexture(0));
 	box2.textures.push_back(assetManager.getTexture(1));
-	box2.Position = Vector3f(-6.0f, 6.0f, 0.0f);
+	box2.textures.push_back(assetManager.getTexture(2));
+	box2.Position = Vector3f(-4.0f, 4.0f, 0.0f);
 	box2.Rotation = Vector3f(1.0f, 2.0f, 3.0f);
 	gameObjects.push_back(box2);
 
 	// Load lights
-	PointLight pointLight1(assetManager.getVertexArrayObject(0));
-	pointLight1.bind();
-	pointLight1.Scale = Vector3f(0.2f, 0.2f, 0.2f);
-	pointLights.push_back(pointLight1);
-
-	PointLight pointLight2(assetManager.getVertexArrayObject(0));
-	pointLight2.bind();
-	pointLight2.Scale = Vector3f(0.2f, 0.2f, 0.2f);
-	pointLights.push_back(pointLight2);
+	PointLight pointLight(assetManager.getVertexArrayObject(0));
+	pointLight.bind();
+	pointLight.Scale = Vector3f(0.2f, 0.2f, 0.2f);
+	pointLights.push_back(pointLight);
+	pointLight.Position.x -= 2.0;
+	pointLights.push_back(pointLight);
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -99,6 +98,9 @@ void display(GLFWwindow* window, double currentTime)
 
 		pointLight.draw();
 	}
+
+	GameObject& box1 = gameObjects.front();
+	box1.Rotation = Vector3f(0, time * 0.5f, 0);
 
 	GameObject& box2 = gameObjects.back();
 	box2.Rotation = Vector3f(time * 0.25f, time * 0.5f, time * 0.75f);
@@ -144,15 +146,12 @@ void display(GLFWwindow* window, double currentTime)
 		shader.setVec3("u_spotLight.direction", camera->Front);
 		shader.setFloat("u_spotLight.cutoff", glm::cos(glm::radians(17.5f)));
 		shader.setFloat("u_spotLight.outerCutoff", glm::cos(glm::radians(25.0f)));
-		shader.setVec3("u_spotLight.diffuse", 0.8f, 0.8f, 0.8f);
+		shader.setVec3("u_spotLight.diffuse", 1.0f, 1.0f, 1.0f);
 		shader.setVec3("u_spotLight.specular", 1.0f, 1.0f, 1.0f);
 		shader.setFloat("u_spotLight.constant", 1.0f);
-		shader.setFloat("u_spotLight.linear", 0.09f);
-		shader.setFloat("u_spotLight.quadratic", 0.032f);
+		shader.setFloat("u_spotLight.linear", 0.15f);
+		shader.setFloat("u_spotLight.quadratic", 0.1f);
 
-		shader.setVec3("u_material.ambient", 1.0f, 0.5f, 0.31f);
-		shader.setVec3("u_material.diffuse", 1.0f, 0.5f, 0.31f);
-		shader.setVec3("u_material.specular", 0.5f, 0.5f, 0.5f);
 		shader.setFloat("u_material.shininess", 32.0f);
 
 		gameObject.draw();

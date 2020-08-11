@@ -26,16 +26,16 @@
     <None Include="lightShader.frag">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="defaultShader.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="defaultShader.vert">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="lightingShader.frag">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="lightingShader.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="oldShader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="oldShader.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
@@ -68,6 +68,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vertexarrayobject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pointlight.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

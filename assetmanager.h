@@ -13,11 +13,11 @@
 class AssetManager
 {
 public:
-    static AssetManager& getInstance()
-    {
-        static AssetManager instance;
-        return instance;
-    }
+	static AssetManager& getInstance()
+	{
+		static AssetManager instance;
+		return instance;
+	}
 
 	const VertexArrayObject& getVertexArrayObject(int index)
 	{
@@ -30,27 +30,28 @@ public:
 	}
 
 private:
-	const std::string objfiles[3] =
+	const std::string objfiles[1] =
 	{
 		"assets/box",
-		"assets/solid_snake",
-		"assets/tank",
+		//"assets/solid_snake",
+		//"assets/tank"
 	};
 
-	const std::string textureFiles[2] =
+	const std::string textureFiles[3] =
 	{
-		"assets/wood_box.png",
-		"assets/wood_box_specular.png"
+		"assets/brickwall.jpg",
+		"assets/brickwall_normal.jpg",
+		"assets/brickwall_specular.jpg"
 	};
 
 	std::vector<VertexArrayObject> vaos;
 	std::vector<Texture> textures;
 
-    AssetManager()
-    {
+	AssetManager()
+	{
 		loadObjFiles();
 		loadTextureFiles();
-    }
+	}
 
 	void loadObjFiles()
 	{
@@ -73,13 +74,19 @@ private:
 				<< std::endl;
 
 			for (const auto& tempShape : tempShapes)
+			{
 				loadShape(tempShape);
+			}
 		}
 	}
 
 	void loadShape(const tinyobj::shape_t& shape)
 	{
-		const tinyobj::mesh_t& mesh = shape.mesh;
+		const auto& mesh = shape.mesh;
+		const auto& pos = mesh.positions;
+		const auto& norm = mesh.normals;
+		const auto& tex = mesh.texcoords;
+		const auto& indices = mesh.indices;
 
 		VertexArrayObject obj;
 		glGenVertexArrays(1, &obj.ID);
@@ -87,33 +94,72 @@ private:
 
 		glGenBuffers(1, &obj.VertexPositionID);
 		glBindBuffer(GL_ARRAY_BUFFER, obj.VertexPositionID);
-		glBufferData(GL_ARRAY_BUFFER, mesh.positions.size() * sizeof(float), &mesh.positions[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, pos.size() * sizeof(float), &pos[0], GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(0);
 
-		if (mesh.normals.size() > 0)
+		if (norm.size() > 0)
 		{
 			glGenBuffers(1, &obj.VertexNormalsID);
 			glBindBuffer(GL_ARRAY_BUFFER, obj.VertexNormalsID);
-			glBufferData(GL_ARRAY_BUFFER, mesh.normals.size() * sizeof(float), &mesh.normals[0], GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, norm.size() * sizeof(float), &norm[0], GL_STATIC_DRAW);
 			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 			glEnableVertexAttribArray(1);
 		}
-		
-		if (mesh.texcoords.size() > 0)
+
+		if (tex.size() > 0)
 		{
 			glGenBuffers(1, &obj.VertexTexCoordsID);
 			glBindBuffer(GL_ARRAY_BUFFER, obj.VertexTexCoordsID);
-			glBufferData(GL_ARRAY_BUFFER, mesh.texcoords.size() * sizeof(float), &mesh.texcoords[0], GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, tex.size() * sizeof(float), &tex[0], GL_STATIC_DRAW);
 			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
 			glEnableVertexAttribArray(2);
 		}
 
+		if (norm.size() > 0 && tex.size() > 0)
+		{
+			std::vector<glm::vec3> tangents;
+
+			for (int i = 0; i < pos.size() / 9; i++)
+			{
+				int j = i * 9;
+				glm::vec3 pos1 = glm::vec3(pos[j + 0], pos[j + 1], pos[j + 2]);
+				glm::vec3 pos2 = glm::vec3(pos[j + 3], pos[j + 4], pos[j + 5]);
+				glm::vec3 pos3 = glm::vec3(pos[j + 6], pos[j + 7], pos[j + 8]);
+
+				j = i * 6;
+				glm::vec2 uv1 = glm::vec2(tex[j + 0], tex[j + 1]);
+				glm::vec2 uv2 = glm::vec2(tex[j + 2], tex[j + 3]);
+				glm::vec2 uv3 = glm::vec2(tex[j + 4], tex[j + 5]);
+
+				// Edges of the triangle : position delta
+				glm::vec3 deltaPos1 = pos2 - pos1;
+				glm::vec3 deltaPos2 = pos3 - pos1;
+
+				// UV delta
+				glm::vec2 deltaUV1 = uv2 - uv1;
+				glm::vec2 deltaUV2 = uv3 - uv1;
+
+				float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+				glm::vec3 tangent = deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y * r;
+
+				tangents.push_back(tangent);
+				tangents.push_back(tangent);
+				tangents.push_back(tangent);
+			}
+
+			glGenBuffers(1, &obj.VertexTangentsID);
+			glBindBuffer(GL_ARRAY_BUFFER, obj.VertexTangentsID);
+			glBufferData(GL_ARRAY_BUFFER, tangents.size() * sizeof(glm::vec3), &tangents[0], GL_STATIC_DRAW);
+			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(3);
+		}
+
 		glGenBuffers(1, &obj.IndicesID);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.IndicesID);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.indices.size() * sizeof(unsigned int), &mesh.indices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
-		obj.IndicesSize = mesh.indices.size();
+		obj.IndicesSize = indices.size();
 
 		vaos.push_back(obj);
 	}
@@ -121,12 +167,10 @@ private:
 	void loadTextureFiles()
 	{
 		for (const std::string& inputfile : textureFiles)
-		{
 			textures.push_back(Texture(inputfile));
-		}
 	}
 
 public:
-    AssetManager(AssetManager const&) = delete;
-    void operator=(AssetManager const&) = delete;
+	AssetManager(AssetManager const&) = delete;
+	void operator=(AssetManager const&) = delete;
 };

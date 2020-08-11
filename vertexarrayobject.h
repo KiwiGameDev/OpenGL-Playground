@@ -7,9 +7,10 @@ class VertexArrayObject
 public:
 	unsigned int ID;
 	unsigned int VertexPositionID;
-	unsigned int VertexColorsID;
 	unsigned int VertexTexCoordsID;
 	unsigned int VertexNormalsID;
+	unsigned int VertexTangentsID;
+	unsigned int VertexBitangentsID;
 	unsigned int IndicesID;
 	size_t IndicesSize;
 
