@@ -1,40 +1,36 @@
 #pragma once
 
-struct Image
+#include "image.h"
+
+enum class TextureType
 {
-	unsigned char* data;
-	int width;
-	int height;
-	int channelCount;
-	int glChannels;
+	Diffuse = 0,
+	Normal,
+	Specular
+};
 
-	Image(const std::string& filepath)
-	{
-		stbi_set_flip_vertically_on_load(true);
-		data = stbi_load(filepath.c_str(), &width, &height, &channelCount, 0);
+struct TextureAsset
+{
+	const char* FilePath;
+	TextureType Type;
 
-		if (channelCount == 3)
-			glChannels = GL_RGB;
-		else if (channelCount == 4)
-			glChannels = GL_RGBA;
-		else
-			glChannels = 0;
-	}
-
-	~Image()
-	{
-		stbi_image_free(data);
-	}
+	TextureAsset(const char* filePath, TextureType type)
+		: FilePath(filePath), Type(type) { }
 };
 
 class Texture
 {
 public:
-	unsigned int ID;
+	
+	static const char* TypeShaderStrings[];
 
-	Texture(const std::string& filepath)
+	unsigned int ID;
+	TextureType textureType;
+
+	Texture(TextureAsset textureAsset)
+		: textureType(textureAsset.Type)
 	{
-		Image img(filepath);
+		Image img(textureAsset.FilePath);
 		glGenTextures(1, &ID);
 		glBindTexture(GL_TEXTURE_2D, ID);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -47,23 +43,17 @@ public:
 
 	void bindTexture(unsigned int shaderID, int samplerID)
 	{
-		std::string textureName = getTextureName(samplerID);
+		std::string textureName(TypeShaderStrings[(int)textureType]);
 		GLint textureLoc = glGetUniformLocation(shaderID, textureName.c_str());
 		glUniform1i(textureLoc, samplerID);
 		glActiveTexture(GL_TEXTURE0 + samplerID);
 		glBindTexture(GL_TEXTURE_2D, ID);
 	}
+};
 
-private:
-	std::string getTextureName(int samplerID)
-	{
-		return "u_material." + textureNames[samplerID];
-	}
-
-	const std::string textureNames[3] =
-	{
-		"diffuseMap",
-		"normalMap",
-		"specularMap"
-	};
+const char* Texture::TypeShaderStrings[] =
+{
+	"u_material.diffuseMap",
+	"u_material.normalMap",
+	"u_material.specularMap"
 };

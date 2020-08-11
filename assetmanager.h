@@ -9,7 +9,6 @@
 #include "texture.h"
 #include "vertexarrayobject.h"
 
-
 class AssetManager
 {
 public:
@@ -37,11 +36,11 @@ private:
 		//"assets/tank"
 	};
 
-	const std::string textureFiles[3] =
+	const TextureAsset textureAssets[3] =
 	{
-		"assets/brickwall.jpg",
-		"assets/brickwall_normal.jpg",
-		"assets/brickwall_specular.jpg"
+		{ "assets/brickwall.jpg", TextureType::Diffuse },
+		{ "assets/brickwall_normal.jpg", TextureType::Normal },
+		{ "assets/brickwall_specular.jpg", TextureType::Specular }
 	};
 
 	std::vector<VertexArrayObject> vaos;
@@ -166,8 +165,8 @@ private:
 
 	void loadTextureFiles()
 	{
-		for (const std::string& inputfile : textureFiles)
-			textures.push_back(Texture(inputfile));
+		for (const TextureAsset& textureAsset : textureAssets)
+			textures.push_back(Texture(textureAsset));
 	}
 
 public:

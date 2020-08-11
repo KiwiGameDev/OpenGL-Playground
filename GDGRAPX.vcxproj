@@ -166,6 +166,7 @@
     <ClInclude Include="assetmanager.h" />
     <ClInclude Include="gameobject.h" />
     <ClInclude Include="helpers.h" />
+    <ClInclude Include="image.h" />
     <ClInclude Include="pointlight.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="stb_image.h" />
