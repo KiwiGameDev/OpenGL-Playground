@@ -25,7 +25,13 @@ public:
 
 	const VertexArrayObject& getVertexArrayObject(std::string key)
 	{
-		return vaos[key];
+		auto itr = vaos.find(key);
+
+		if (itr != vaos.end())
+			return itr->second;
+		
+		std::cout << "Cannot find VAO: " << key << '\n';
+		return VertexArrayObject();
 	}
 
 	const Texture& getTexture(int index)
@@ -35,7 +41,13 @@ public:
 
 	const CubeMap& getCubeMap(std::string key)
 	{
-		return cubeMaps[key];
+		auto itr = cubeMaps.find(key);
+
+		if (itr != cubeMaps.end())
+			return itr->second;
+
+		std::cout << "Cannot find CubeMap: " << key << '\n';
+		return CubeMap();
 	}
 
 private:
