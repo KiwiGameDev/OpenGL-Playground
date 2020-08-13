@@ -157,7 +157,7 @@
   <ItemGroup>
     <None Include="camera.h" />
     <None Include="oldShader.frag" />
-    <None Include="lightShader.frag" />
+    <None Include="unlitShader.frag" />
     <None Include="lightingShader.frag" />
     <None Include="lightingShader.vert" />
     <None Include="oldShader.vert" />
@@ -172,6 +172,8 @@
     <ClInclude Include="helpers.h" />
     <ClInclude Include="drawable.h" />
     <ClInclude Include="image.h" />
+    <ClInclude Include="particle.h" />
+    <ClInclude Include="particlesystem.h" />
     <ClInclude Include="pointlight.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="shadermanager.h" />

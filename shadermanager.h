@@ -46,7 +46,7 @@ private:
 	ShaderManager()
 	{
 		Shader mainShader = Shader("lightingShader.vert", "lightingShader.frag");
-		Shader lightShader = Shader("lightingShader.vert", "lightShader.frag");
+		Shader unlitShader = Shader("lightingShader.vert", "unlitShader.frag");
 		Shader skyboxShader = Shader("skyboxShader.vert", "skyboxShader.frag");
 
 		mainShaders.push_back(mainShader);
@@ -56,8 +56,8 @@ private:
 			mainShader
 		));
 		shaderMap.insert(std::make_pair(
-			"LightShader",
-			lightShader
+			"UnlitShader",
+			unlitShader
 		));
 		shaderMap.insert(std::make_pair(
 			"SkyboxShader",

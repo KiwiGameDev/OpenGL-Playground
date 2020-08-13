@@ -15,13 +15,15 @@
 #include "camera.h"
 #include "assetmanager.h"
 #include "shadermanager.h"
+#include "particlesystem.h"
 
 #define WIDTH 800
 #define HEIGHT 800
 
-Shader lightShader;
+Shader unlitShader;
 Shader mainShader;
 
+ParticleSystem* snowParticles;
 std::vector<GameObject> gameObjects;
 DirectionalLight directionalLight;
 std::vector<PointLight> pointLights;
@@ -34,7 +36,7 @@ void init(GLFWwindow* window)
 {
 	// Load shaders
 	ShaderManager& shaderManager = ShaderManager::getInstance();
-	lightShader = shaderManager.getShader("LightShader");
+	unlitShader = shaderManager.getShader("UnlitShader");
 	mainShader = shaderManager.getShader("LightingShader");
 
 	// Load assets
@@ -53,24 +55,23 @@ void init(GLFWwindow* window)
 	gameObjects.push_back(box);
 
 	// Load lights
-	PointLight pointLight(assetManager.getVertexArrayObject("box"), lightShader);
+	PointLight pointLight(assetManager.getVertexArrayObject("box"), unlitShader);
 	pointLight.bind();
 	pointLight.Scale = glm::vec3(0.2f, 0.2f, 0.2f);
 	pointLights.push_back(pointLight);
 	pointLight.Position.x -= 2.0;
 	pointLights.push_back(pointLight);
 
+	snowParticles = new ParticleSystem(100);
+
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 };
 
-void display(GLFWwindow* window, double currentTime)
+void display(GLFWwindow* window, float time, float deltaTime)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Common variables
-	float time = (float)currentTime;
 
 	ShaderManager::getInstance().updateShadersCommon(time, camera->Position);
 
@@ -90,6 +91,10 @@ void display(GLFWwindow* window, double currentTime)
 	box1.Rotation = glm::vec3(0, time * 0.5f, 0);
 	GameObject& box2 = gameObjects.back();
 	box2.Rotation = glm::vec3(time * 0.25f, time * 0.5f, time * 0.75f);
+
+	// Snow particles
+	snowParticles->update(deltaTime);
+	snowParticles->draw(viewProjection);
 
 	// Update lighting
 	// Point lights
@@ -197,7 +202,7 @@ int main(void)
 		lastFrameTime = currentTime;
 
 		processKeyInput(window, deltaTime);
-		display(window, currentTime);
+		display(window, currentTime, deltaTime);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
