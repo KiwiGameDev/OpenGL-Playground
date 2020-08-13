@@ -13,6 +13,11 @@
 class CubeMap
 {
 public:
+	CubeMap()
+	{
+		textureID = 255;
+	}
+
 	CubeMap(VertexArrayObject vao, Shader shader, const std::vector<std::string>& faces)
 		: vao(vao), shader(shader)
 	{

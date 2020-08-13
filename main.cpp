@@ -41,24 +41,19 @@ void init(GLFWwindow* window)
 	AssetManager& assetManager = AssetManager::getInstance();
 
 	// Load gameobjects
-	GameObject box = GameObject(assetManager.getVertexArrayObject(0), mainShader);
+	GameObject box = GameObject(assetManager.getVertexArrayObject("box"), mainShader);
 	box.bind();
 	box.textures.push_back(assetManager.getTexture(0));
 	box.textures.push_back(assetManager.getTexture(1));
 	box.textures.push_back(assetManager.getTexture(2));
 	gameObjects.push_back(box);
-
-	GameObject box2 = GameObject(assetManager.getVertexArrayObject(0), mainShader);
-	box2.bind();
-	box2.textures.push_back(assetManager.getTexture(0));
-	box2.textures.push_back(assetManager.getTexture(1));
-	box2.textures.push_back(assetManager.getTexture(2));
-	box2.Position = glm::vec3(-4.0f, 4.0f, 0.0f);
-	box2.Rotation = glm::vec3(1.0f, 2.0f, 3.0f);
-	gameObjects.push_back(box2);
+	
+	box.Position = glm::vec3(-4.0f, 4.0f, 0.0f);
+	box.Rotation = glm::vec3(1.0f, 2.0f, 3.0f);
+	gameObjects.push_back(box);
 
 	// Load lights
-	PointLight pointLight(assetManager.getVertexArrayObject(0), lightShader);
+	PointLight pointLight(assetManager.getVertexArrayObject("box"), lightShader);
 	pointLight.bind();
 	pointLight.Scale = glm::vec3(0.2f, 0.2f, 0.2f);
 	pointLights.push_back(pointLight);
@@ -87,7 +82,7 @@ void display(GLFWwindow* window, double currentTime)
 	// Skybox
 	glm::mat4 skyboxView = glm::mat4(glm::mat3(view));
 	glm::mat4 skyboxMVP = projection * skyboxView;
-	CubeMap skybox = AssetManager::getInstance().getCubeMap(0);
+	CubeMap skybox = AssetManager::getInstance().getCubeMap("MainCubeMap");
 	skybox.draw(skyboxMVP);
 
 	// Update game objects
