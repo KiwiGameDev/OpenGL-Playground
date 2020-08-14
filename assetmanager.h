@@ -53,11 +53,11 @@ public:
 private:
 	const std::string assetsPath = "assets/";
 
-	const std::string objfiles[1] =
+	const std::string objfiles[3] =
 	{
 		"box",
-		//"solid_snake",
-		//"tank"
+		"solid_snake",
+		"tank"
 	};
 
 	const TextureAsset textureAssets[3] =

@@ -13,10 +13,23 @@
 class GameObject : public Transformable, public Drawable
 {
 public:
+	glm::vec3 Velocity;
+	glm::vec3 RotationSpeed;
 	std::vector<Texture> textures;
 
 	GameObject(VertexArrayObject vao, Shader shader)
-		: Drawable(vao, shader) { }
+		: Drawable(vao, shader)
+	{
+		Velocity = glm::vec3();
+		RotationSpeed = glm::vec3();
+	}
+
+	void update(float deltaTime)
+	{
+		Position += Velocity * deltaTime;
+		Rotation += RotationSpeed * deltaTime;
+		updateModelMatrix();
+	}
 
 	void updateShaderUniforms(glm::mat4 viewProjection) const
 	{

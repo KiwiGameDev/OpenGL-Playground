@@ -48,10 +48,10 @@ void init(GLFWwindow* window)
 	box.textures.push_back(assetManager.getTexture(0));
 	box.textures.push_back(assetManager.getTexture(1));
 	box.textures.push_back(assetManager.getTexture(2));
+	box.RotationSpeed = glm::vec3(0.0f, 0.5f, 0.0f);
 	gameObjects.push_back(box);
-	
 	box.Position = glm::vec3(-4.0f, 4.0f, 0.0f);
-	box.Rotation = glm::vec3(1.0f, 2.0f, 3.0f);
+	box.RotationSpeed = glm::vec3(0.25f, 0.5f, 0.75f);
 	gameObjects.push_back(box);
 
 	// Load lights
@@ -86,32 +86,22 @@ void display(GLFWwindow* window, float time, float deltaTime)
 	CubeMap skybox = AssetManager::getInstance().getCubeMap("MainCubeMap");
 	skybox.draw(skyboxMVP);
 
-	// Update game objects
-	GameObject& box1 = gameObjects.front();
-	box1.Rotation = glm::vec3(0, time * 0.5f, 0);
-	GameObject& box2 = gameObjects.back();
-	box2.Rotation = glm::vec3(time * 0.25f, time * 0.5f, time * 0.75f);
-
-	// Snow particles
-	snowParticles->update(deltaTime);
-	snowParticles->draw(viewProjection);
-
-	// Update lighting
 	// Point lights
 	for (int i = 0; i < pointLights.size(); i++)
 	{
 		PointLight& pointLight = pointLights[i];
-
-		pointLight.Position.x = sin(time) * 2 * pow(-1, i);
-		pointLight.Position.y = -sin(time) * 2;
-		pointLight.Position.z = cos(time) * 2 * pow(-1, i);
-
-		pointLight.bind();
+		pointLight.Position.x = 2.0f * sin(time) * pow(-1, i);
+		pointLight.Position.y = 2.0f * -sin(time);
+		pointLight.Position.z = 2.0f * cos(time) * pow(-1, i);
 		pointLight.updateModelMatrix();
+		pointLight.bind();
 		pointLight.updateShaderUniforms(viewProjection);
-
 		pointLight.draw();
 	}
+
+	// Snow particles
+	snowParticles->update(deltaTime);
+	snowParticles->draw(viewProjection);
 
 	// Spot light
 	spotLight.Position = camera->Position;
@@ -122,7 +112,7 @@ void display(GLFWwindow* window, float time, float deltaTime)
 	for (GameObject& gameObject : gameObjects)
 	{
 		gameObject.bind();
-		gameObject.updateModelMatrix();
+		gameObject.update(deltaTime);
 		gameObject.updateShaderUniforms(viewProjection);
 		gameObject.bindTextures();
 

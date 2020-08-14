@@ -15,6 +15,7 @@ class CubeMap
 public:
 	CubeMap()
 	{
+		std::cout << "Invalid CubeMap instantiated!\n";
 		textureID = 255;
 	}
 
@@ -44,7 +45,7 @@ public:
 			}
 			else
 			{
-				std::cout << "cubemap tex failed to load at path: " << faces[i] << std::endl;
+				std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
 			}
 		}
 
