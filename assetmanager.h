@@ -34,9 +34,15 @@ public:
 		return VertexArrayObject();
 	}
 
-	const Texture& getTexture(int index)
+	const Texture& getTexture(std::string key)
 	{
-		return textures[index];
+		auto itr = textures.find(key);
+
+		if (itr != textures.end())
+			return itr->second;
+
+		std::cout << "Cannot find Texture: " << key << '\n';
+		return Texture();
 	}
 
 	const CubeMap& getCubeMap(std::string key)
@@ -51,20 +57,18 @@ public:
 	}
 
 private:
-	const std::string assetsPath = "assets/";
-
 	const std::string objfiles[3] =
 	{
-		"box",
-		"solid_snake",
-		"tank"
+		"assets/box",
+		"assets/solid_snake",
+		"assets/tank"
 	};
 
 	const TextureAsset textureAssets[3] =
 	{
-		{ "assets/brickwall.jpg", TextureType::Diffuse },
-		{ "assets/brickwall_normal.jpg", TextureType::Normal },
-		{ "assets/brickwall_specular.jpg", TextureType::Specular }
+		{ "assets/textures/brickwall.jpg", TextureType::Diffuse },
+		{ "assets/textures/brickwall_normal.jpg", TextureType::Normal },
+		{ "assets/textures/brickwall_specular.jpg", TextureType::Specular }
 	};
 	
 	const std::vector<std::string> cubemapFilepaths =
@@ -78,7 +82,7 @@ private:
 	};
 
 	std::unordered_map<std::string, VertexArrayObject> vaos;
-	std::vector<Texture> textures;
+	std::unordered_map<std::string, Texture> textures;
 	std::unordered_map<std::string, CubeMap> cubeMaps;
 
 	AssetManager()
@@ -91,21 +95,22 @@ private:
 
 	void loadObjFiles()
 	{
-		for (const std::string& fileName : objfiles)
+		for (const std::string& filePath : objfiles)
 		{
 			std::string err;
 			std::vector<tinyobj::shape_t> tempShapes;
 			std::vector<tinyobj::material_t> tempMaterials;
 
-			std::string obj = assetsPath + fileName + ".obj";
-			std::string mtl = assetsPath + fileName + ".mtl";
+			std::string name = filePath.substr(filePath.find_last_of('/') + 1);
+			std::string obj = filePath + ".obj";
+			std::string mtl = filePath + ".mtl";
 
 			tinyobj::LoadObj(tempShapes, tempMaterials, err, obj.c_str(), mtl.c_str());
 
 			if (!err.empty())
 				std::cerr << err << std::endl;
 			else
-				std::cout << "Loaded " << fileName
+				std::cout << "Loaded " << filePath
 				<< " with shapes: " << tempShapes.size()
 				<< std::endl;
 
@@ -117,7 +122,7 @@ private:
 				const auto& tex = mesh.texcoords;
 				const auto& indices = mesh.indices;
 				VertexArrayObject newVAO = VertexArrayObject(pos, norm, tex, indices);
-				vaos.insert(std::make_pair(fileName, newVAO));
+				vaos.insert(std::make_pair(name, newVAO));
 			}
 		}
 	}
@@ -125,7 +130,11 @@ private:
 	void loadTextureFiles()
 	{
 		for (const TextureAsset& textureAsset : textureAssets)
-			textures.push_back(Texture(textureAsset));
+		{
+			std::string filePath = textureAsset.FilePath;
+			std::string name = filePath.substr(filePath.find_last_of('/') + 1);
+			textures.insert(std::make_pair(name, Texture(textureAsset)));
+		}
 	}
 
 	void loadCubemaps()

@@ -2,7 +2,7 @@
 #include <GL\glew.h>
 #include <glm/glm.hpp>
 
-#include <vector>
+#include <unordered_map>
 
 #include "texture.h"
 #include "shader.h"
@@ -15,7 +15,7 @@ class GameObject : public Transformable, public Drawable
 public:
 	glm::vec3 Velocity;
 	glm::vec3 RotationSpeed;
-	std::vector<Texture> textures;
+	std::unordered_map<TextureType, Texture> textures;
 
 	GameObject(VertexArrayObject vao, Shader shader)
 		: Drawable(vao, shader)
@@ -37,9 +37,15 @@ public:
 		shader.setMat4("u_localToClip", getMVP(viewProjection));
 	}
 
+	void addTexture(Texture texture)
+	{
+		textures.insert(std::make_pair(texture.textureType, texture));
+	}
+
 	void bindTextures() const
 	{
-		for (size_t i = 0; i < textures.size(); i++)
-			textures[i].bindTexture(shader.ID, i);
+		int i = 0;
+		for (const auto& itr : textures)
+			itr.second.bindTexture(shader.ID, i++);
 	}
 };

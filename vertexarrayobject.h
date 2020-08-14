@@ -15,12 +15,13 @@ public:
 
 	VertexArrayObject()
 	{
-		ID = 255;
-		VertexPositionID = 255;
-		VertexNormalsID = 255;
-		VertexTexCoordsID = 255;
-		VertexTangentsID = 255;
-		IndicesID = 255;
+		ID = 4096;
+		VertexPositionID = 4096;
+		VertexNormalsID = 4096;
+		VertexTexCoordsID = 4096;
+		VertexTangentsID = 4096;
+		IndicesID = 4096;
+		IndicesSize = 0;
 	}
 
 	VertexArrayObject(std::vector<float> pos, std::vector<float> norm, std::vector<float> tex, std::vector<unsigned int> indices)

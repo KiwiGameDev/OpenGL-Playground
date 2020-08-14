@@ -11,20 +11,26 @@ enum class TextureType
 
 struct TextureAsset
 {
-	const char* FilePath;
+	std::string FilePath;
 	TextureType Type;
 
-	TextureAsset(const char* filePath, TextureType type)
+	TextureAsset(std::string filePath, TextureType type)
 		: FilePath(filePath), Type(type) { }
 };
 
 class Texture
 {
 public:
-	static const char* TypeShaderStrings[];
+	static const char* ShaderUniforms[];
 
 	unsigned int ID;
 	TextureType textureType;
+
+	Texture()
+	{
+		ID = 4096;
+		textureType = TextureType();
+	}
 
 	Texture(TextureAsset textureAsset)
 		: textureType(textureAsset.Type)
@@ -53,7 +59,7 @@ public:
 
 	void bindTexture(unsigned int shaderID, int samplerID) const
 	{
-		std::string textureName(TypeShaderStrings[(int)textureType]);
+		std::string textureName(ShaderUniforms[(int)textureType]);
 		GLint textureLoc = glGetUniformLocation(shaderID, textureName.c_str());
 		glUniform1i(textureLoc, samplerID);
 		glActiveTexture(GL_TEXTURE0 + samplerID);
@@ -61,7 +67,7 @@ public:
 	}
 };
 
-const char* Texture::TypeShaderStrings[] =
+const char* Texture::ShaderUniforms[] =
 {
 	"u_material.diffuseMap",
 	"u_material.normalMap",

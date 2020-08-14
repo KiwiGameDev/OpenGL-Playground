@@ -45,9 +45,9 @@ void init(GLFWwindow* window)
 	// Load gameobjects
 	GameObject box = GameObject(assetManager.getVertexArrayObject("box"), mainShader);
 	box.bind();
-	box.textures.push_back(assetManager.getTexture(0));
-	box.textures.push_back(assetManager.getTexture(1));
-	box.textures.push_back(assetManager.getTexture(2));
+	box.addTexture(assetManager.getTexture("brickwall.jpg"));
+	box.addTexture(assetManager.getTexture("brickwall_normal.jpg"));
+	box.addTexture(assetManager.getTexture("brickwall_specular.jpg"));
 	box.RotationSpeed = glm::vec3(0.0f, 0.5f, 0.0f);
 	gameObjects.push_back(box);
 	box.Position = glm::vec3(-4.0f, 4.0f, 0.0f);
