@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <filesystem>
 
+#include "gameobject.h"
 #include "shadermanager.h"
 #include "vertexarrayobject.h"
 #include "texture.h"
@@ -58,13 +59,6 @@ public:
 	}
 
 private:
-	const std::string objfiles[3] =
-	{
-		"assets/box",
-		"assets/solid_snake",
-		"assets/tank"
-	};
-	
 	const std::vector<std::string> cubemapFilepaths =
 	{
 		"assets/cubemap/right.jpg",
@@ -75,6 +69,7 @@ private:
 		"assets/cubemap/back.jpg"
 	};
 
+	std::unordered_map<std::string, GameObject> gameObjects;
 	std::unordered_map<std::string, VertexArrayObject> vaos;
 	std::unordered_map<std::string, Texture> textures;
 	std::unordered_map<std::string, CubeMap> cubeMaps;
@@ -89,15 +84,22 @@ private:
 
 	void loadObjFiles()
 	{
-		for (const std::string& filePath : objfiles)
+		std::string dirPath = "assets";
+		for (const auto& entry : std::filesystem::directory_iterator(dirPath))
 		{
 			std::string err;
 			std::vector<tinyobj::shape_t> tempShapes;
 			std::vector<tinyobj::material_t> tempMaterials;
 
-			std::string name = filePath.substr(filePath.find_last_of('/') + 1);
-			std::string obj = filePath + ".obj";
-			std::string mtl = filePath + ".mtl";
+			std::string filePath = entry.path().string();
+
+			if (filePath.find(".obj") == std::string::npos)
+				continue;
+
+			std::string name = filePath.substr(filePath.find_last_of('\\') + 1);
+			name = name.substr(0, name.length() - 4);
+			std::string obj = filePath;
+			std::string mtl = filePath.substr(0, filePath.length() - 4) + ".mtl";
 
 			tinyobj::LoadObj(tempShapes, tempMaterials, err, obj.c_str(), mtl.c_str());
 
@@ -127,8 +129,7 @@ private:
 		for (const auto& entry : std::filesystem::directory_iterator(path))
 		{
 			std::string filePath = entry.path().string();
-			std::string name = filePath;
-			name = name.erase(0, name.find_last_of('\\') + 1);
+			std::string name = filePath.substr(filePath.find_last_of('\\') + 1);
 			textures.insert(std::make_pair(name, Texture(filePath)));
 		}
 	}

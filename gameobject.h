@@ -6,7 +6,6 @@
 
 #include "texture.h"
 #include "shader.h"
-#include "AssetManager.h"
 #include "transformable.h"
 #include "drawable.h"
 
@@ -16,6 +15,12 @@ public:
 	glm::vec3 Velocity;
 	glm::vec3 RotationSpeed;
 	std::unordered_map<TextureType, Texture> textures;
+
+	GameObject()
+	{
+		Velocity = glm::vec3();
+		RotationSpeed = glm::vec3();
+	}
 
 	GameObject(VertexArrayObject vao, Shader shader)
 		: Drawable(vao, shader)

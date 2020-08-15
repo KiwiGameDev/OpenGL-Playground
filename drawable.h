@@ -9,6 +9,9 @@ public:
 	VertexArrayObject VAO;
 	Shader shader;
 
+	Drawable()
+		: VAO(), shader() { }
+
 	Drawable(VertexArrayObject vao, Shader shader)
 		: VAO(vao), shader(shader) { }
 
