@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <filesystem>
 
 #include "shadermanager.h"
 #include "vertexarrayobject.h"
@@ -62,13 +63,6 @@ private:
 		"assets/box",
 		"assets/solid_snake",
 		"assets/tank"
-	};
-
-	const TextureAsset textureAssets[3] =
-	{
-		{ "assets/textures/brickwall.jpg", TextureType::Diffuse },
-		{ "assets/textures/brickwall_normal.jpg", TextureType::Normal },
-		{ "assets/textures/brickwall_specular.jpg", TextureType::Specular }
 	};
 	
 	const std::vector<std::string> cubemapFilepaths =
@@ -129,11 +123,13 @@ private:
 
 	void loadTextureFiles()
 	{
-		for (const TextureAsset& textureAsset : textureAssets)
+		std::string path = "assets/textures";
+		for (const auto& entry : std::filesystem::directory_iterator(path))
 		{
-			std::string filePath = textureAsset.FilePath;
-			std::string name = filePath.substr(filePath.find_last_of('/') + 1);
-			textures.insert(std::make_pair(name, Texture(textureAsset)));
+			std::string filePath = entry.path().string();
+			std::string name = filePath;
+			name = name.erase(0, name.find_last_of('\\') + 1);
+			textures.insert(std::make_pair(name, Texture(filePath)));
 		}
 	}
 

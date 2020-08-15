@@ -1,21 +1,13 @@
 #pragma once
-
 #include "image.h"
+
+#include <algorithm>
 
 enum class TextureType
 {
 	Diffuse = 0,
 	Normal,
 	Specular
-};
-
-struct TextureAsset
-{
-	std::string FilePath;
-	TextureType Type;
-
-	TextureAsset(std::string filePath, TextureType type)
-		: FilePath(filePath), Type(type) { }
 };
 
 class Texture
@@ -32,10 +24,17 @@ public:
 		textureType = TextureType();
 	}
 
-	Texture(TextureAsset textureAsset)
-		: textureType(textureAsset.Type)
+	Texture(std::string filePath)
 	{
-		Image img(textureAsset.FilePath);
+		Image img(filePath);
+
+		std::transform(filePath.begin(), filePath.end(), filePath.begin(), std::tolower);
+		if (filePath.find("normal") != std::string::npos)
+			textureType = TextureType::Normal;
+		else if (filePath.find("specular") != std::string::npos)
+			textureType = TextureType::Specular;
+		else
+			textureType = TextureType::Diffuse;
 
 		glGenTextures(1, &ID);
 		glBindTexture(GL_TEXTURE_2D, ID);

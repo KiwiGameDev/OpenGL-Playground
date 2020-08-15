@@ -12,10 +12,10 @@ struct Image
 	int channelCount;
 	int glChannels;
 
-	Image(const std::string& filepath, bool flipVertically = true)
+	Image(const std::string& filePath, bool flipVertically = true)
 	{
 		stbi_set_flip_vertically_on_load(flipVertically);
-		data = stbi_load(filepath.c_str(), &width, &height, &channelCount, 0);
+		data = stbi_load(filePath.c_str(), &width, &height, &channelCount, 0);
 
 		if (channelCount == 3)
 			glChannels = GL_RGB;
