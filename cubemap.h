@@ -19,7 +19,7 @@ public:
 		textureID = 255;
 	}
 
-	CubeMap(VertexArrayObject vao, Shader shader, const std::vector<std::string>& faces)
+	CubeMap(const VertexArrayObject& vao, const Shader& shader, const std::vector<std::string>& faces)
 		: vao(vao), shader(shader)
 	{
 		assert(faces.size() == 6);

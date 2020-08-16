@@ -24,7 +24,10 @@ public:
 		IndicesSize = 0;
 	}
 
-	VertexArrayObject(std::vector<float> pos, std::vector<float> norm, std::vector<float> tex, std::vector<unsigned int> indices)
+	VertexArrayObject(const std::vector<float>& pos,
+					  const std::vector<float>& norm,
+					  const std::vector<float>& tex,
+					  const std::vector<unsigned int>& indices)
 		: VertexArrayObject()
 	{
 		glGenVertexArrays(1, &ID);

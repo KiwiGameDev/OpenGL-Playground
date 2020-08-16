@@ -37,7 +37,7 @@ void init(GLFWwindow* window)
 	// Load shaders
 	ShaderManager& shaderManager = ShaderManager::getInstance();
 	unlitShader = shaderManager.getShader("UnlitShader");
-	mainShader = shaderManager.getShader("LightingShader");
+	mainShader = shaderManager.getShader("DefaultShader");
 
 	// Load assets
 	AssetManager& assetManager = AssetManager::getInstance();

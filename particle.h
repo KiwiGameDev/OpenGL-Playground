@@ -13,7 +13,7 @@ public:
 	glm::vec3 Velocity;
 	glm::vec3 RotationSpeed;
 
-	Particle(VertexArrayObject vao, Shader shader)
+	Particle(const VertexArrayObject& vao, const Shader& shader)
 		: Drawable(vao, shader)
 	{
 		Velocity = glm::vec3(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
@@ -28,7 +28,7 @@ public:
 		updateModelMatrix();
 	}
 
-	void updateShaderUniforms(glm::mat4 viewProjection) const
+	void updateShaderUniforms(const glm::mat4& viewProjection) const
 	{
 		shader.setMat4("u_model", Model);
 		shader.setMat4("u_localToClip", getMVP(viewProjection));

@@ -25,7 +25,7 @@ public:
 		return instance;
 	}
 
-	const VertexArrayObject& getVertexArrayObject(std::string key)
+	const VertexArrayObject& getVertexArrayObject(const std::string& key)
 	{
 		auto itr = vaos.find(key);
 
@@ -36,7 +36,7 @@ public:
 		return VertexArrayObject();
 	}
 
-	const Texture& getTexture(std::string key)
+	const Texture& getTexture(const std::string& key)
 	{
 		auto itr = textures.find(key);
 
@@ -47,7 +47,7 @@ public:
 		return Texture();
 	}
 
-	const CubeMap& getCubeMap(std::string key)
+	const CubeMap& getCubeMap(const std::string& key)
 	{
 		auto itr = cubeMaps.find(key);
 

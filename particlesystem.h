@@ -30,7 +30,7 @@ public:
 			particle.update(deltaTime);
 	}
 
-	void draw(glm::mat4 viewProjection)
+	void draw(const glm::mat4& viewProjection)
 	{
 		for (const Particle& particle : particles)
 		{

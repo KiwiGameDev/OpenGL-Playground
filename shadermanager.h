@@ -30,7 +30,9 @@ public:
 		}
 	}
 
-	void updateShadersLighting(DirectionalLight dirLight, std::vector<PointLight> pointLights, SpotLight spotLight)
+	void updateShadersLighting(const DirectionalLight& dirLight,
+							   const std::vector<PointLight>& pointLights,
+							   const SpotLight& spotLight)
 	{
 		for (Shader& shader : mainShaders)
 		{
@@ -52,7 +54,7 @@ private:
 		mainShaders.push_back(mainShader);
 
 		shaderMap.insert(std::make_pair(
-			"LightingShader",
+			"DefaultShader",
 			mainShader
 		));
 		shaderMap.insert(std::make_pair(

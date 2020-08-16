@@ -24,17 +24,11 @@ public:
 		textureType = TextureType();
 	}
 
-	Texture(std::string filePath)
+	Texture(const std::string& filePath)
 	{
 		Image img(filePath);
 
-		std::transform(filePath.begin(), filePath.end(), filePath.begin(), std::tolower);
-		if (filePath.find("normal") != std::string::npos)
-			textureType = TextureType::Normal;
-		else if (filePath.find("specular") != std::string::npos)
-			textureType = TextureType::Specular;
-		else
-			textureType = TextureType::Diffuse;
+		textureType = getTextureType(filePath);
 
 		glGenTextures(1, &ID);
 		glBindTexture(GL_TEXTURE_2D, ID);
@@ -63,6 +57,19 @@ public:
 		glUniform1i(textureLoc, samplerID);
 		glActiveTexture(GL_TEXTURE0 + samplerID);
 		glBindTexture(GL_TEXTURE_2D, ID);
+	}
+
+private:
+	TextureType getTextureType(std::string path)
+	{
+		std::transform(path.begin(), path.end(), path.begin(), std::tolower);
+
+		if (path.find("normal") != std::string::npos)
+			return TextureType::Normal;
+		else if (path.find("specular") != std::string::npos)
+			return TextureType::Specular;
+		else
+			return TextureType::Diffuse;
 	}
 };
 

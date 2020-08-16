@@ -36,7 +36,7 @@ public:
 		Quadratic = 0.1f;
 	}
 
-	void setOtherShaderUniforms(Shader shader)
+	void setOtherShaderUniforms(Shader shader) const
 	{
 		shader.setVec3("u_spotLight.position", Position);
 		shader.setVec3("u_spotLight.direction", Direction);

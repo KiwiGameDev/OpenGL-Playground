@@ -120,19 +120,19 @@ public:
         glUniform3f(glGetUniformLocation(ID, name), x, y, z);
     }
 
-    void setVec3(const char* name, glm::vec3 vec3) const
+    void setVec3(const char* name, const glm::vec3& vec3) const
     {
         float tempArr[3] = { vec3.x, vec3.y, vec3.z };
         glUniform3fv(glGetUniformLocation(ID, name), 1, tempArr);
     }
 
-    void setMat4(const char* name, glm::mat4 value) const
+    void setMat4(const char* name, const glm::mat4& value) const
     {
         glUniformMatrix4fv(glGetUniformLocation(ID, name), 1, GL_FALSE, glm::value_ptr(value));
     }
 
 private:
-    void checkCompileErrors(unsigned int shader, std::string type)
+    void checkCompileErrors(unsigned int shader, const std::string& type)
     {
         int success;
         char infoLog[1024];

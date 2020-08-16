@@ -17,7 +17,7 @@ public:
 	float Linear;
 	float Quadratic;
 
-	PointLight(VertexArrayObject vao, Shader shader)
+	PointLight(const VertexArrayObject& vao, const Shader& shader)
 		: Drawable(vao, shader)
 	{
 		Ambient = { 0.2f, 0.2f, 0.2f };
@@ -29,12 +29,12 @@ public:
 		Quadratic = 0.032f;
 	}
 
-	void updateShaderUniforms(glm::mat4 viewProjection) const
+	void updateShaderUniforms(const glm::mat4& viewProjection) const
 	{
 		shader.setMat4("u_localToClip", getMVP(viewProjection));
 	}
 
-	void setOtherShaderUniforms(Shader shader, int index) const
+	void setOtherShaderUniforms(const Shader& shader, int index) const
 	{
 		std::string strUniform = "u_pointLights[" + std::to_string(index) + "]";
 		shader.setVec3((strUniform + ".position").c_str(), Position);

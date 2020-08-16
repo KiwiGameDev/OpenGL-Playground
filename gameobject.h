@@ -22,7 +22,7 @@ public:
 		RotationSpeed = glm::vec3();
 	}
 
-	GameObject(VertexArrayObject vao, Shader shader)
+	GameObject(const VertexArrayObject& vao, const Shader& shader)
 		: Drawable(vao, shader)
 	{
 		Velocity = glm::vec3();
@@ -36,13 +36,13 @@ public:
 		updateModelMatrix();
 	}
 
-	void updateShaderUniforms(glm::mat4 viewProjection) const
+	void updateShaderUniforms(const glm::mat4& viewProjection) const
 	{
 		shader.setMat4("u_model", Model);
 		shader.setMat4("u_localToClip", getMVP(viewProjection));
 	}
 
-	void addTexture(Texture texture)
+	void addTexture(const Texture& texture)
 	{
 		textures.insert(std::make_pair(texture.textureType, texture));
 	}

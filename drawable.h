@@ -12,7 +12,7 @@ public:
 	Drawable()
 		: VAO(), shader() { }
 
-	Drawable(VertexArrayObject vao, Shader shader)
+	Drawable(const VertexArrayObject& vao, const Shader& shader)
 		: VAO(vao), shader(shader) { }
 
 	virtual void bind() const
@@ -21,7 +21,7 @@ public:
 		shader.use();
 	}
 
-	virtual void updateShaderUniforms(glm::mat4 viewProjection) const = 0;
+	virtual void updateShaderUniforms(const glm::mat4& viewProjection) const = 0;
 	
 	void draw() const
 	{

@@ -33,7 +33,10 @@ public:
     float MovementSpeed;
     float MouseSensitivity;
 
-    Camera (glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH)
+    Camera (const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
+            const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f),
+            float yaw = YAW,
+            float pitch = PITCH)
     {
         Front = glm::vec3(0.0f, 0.0f, -1.0f);
         MovementSpeed = SPEED;
@@ -114,7 +117,11 @@ public:
     float FOV;
     float AspectRatio;
 
-    CameraPerspective(float aspectRatio, glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH)
+    CameraPerspective(float aspectRatio,
+                      const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
+                      const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f),
+                      float yaw = YAW,
+                      float pitch = PITCH)
         : Camera(position, up, yaw, pitch)
     {
         FOV = DEFAULT_FOV;
@@ -141,7 +148,11 @@ class CameraOrthographic : public Camera
 public:
     glm::vec2 Dimensions;
 
-    CameraOrthographic(glm::vec2 dimensions, glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH)
+    CameraOrthographic(const glm::vec2& dimensions,
+                       const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
+                       const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f),
+                       float yaw = YAW,
+                       float pitch = PITCH)
         : Camera(position, up, yaw, pitch)
     {
         Dimensions = dimensions;
