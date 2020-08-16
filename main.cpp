@@ -42,12 +42,18 @@ void init(GLFWwindow* window)
 	// Load assets
 	AssetManager& assetManager = AssetManager::getInstance();
 
+	Material boxMaterial;
+	boxMaterial.setTexture(assetManager.getTexture("brickwall.jpg"));
+	boxMaterial.setTexture(assetManager.getTexture("brickwall_normal.jpg"));
+	boxMaterial.setTexture(assetManager.getTexture("brickwall_specular.jpg"));
+	boxMaterial.setShader(mainShader);
+
+	Material lightMaterial;
+	lightMaterial.setShader(unlitShader);
+
 	// Load gameobjects
-	GameObject box = GameObject(assetManager.getVertexArrayObject("box"), mainShader);
-	box.bind();
-	box.addTexture(assetManager.getTexture("brickwall.jpg"));
-	box.addTexture(assetManager.getTexture("brickwall_normal.jpg"));
-	box.addTexture(assetManager.getTexture("brickwall_specular.jpg"));
+	GameObject box = GameObject(assetManager.getVertexArrayObject("box"), boxMaterial);
+	
 	box.RotationSpeed = glm::vec3(0.0f, 0.5f, 0.0f);
 	gameObjects.push_back(box);
 	box.Position = glm::vec3(-4.0f, 4.0f, 0.0f);
@@ -55,11 +61,9 @@ void init(GLFWwindow* window)
 	gameObjects.push_back(box);
 
 	// Load lights
-	PointLight pointLight(assetManager.getVertexArrayObject("box"), unlitShader);
-	pointLight.bind();
+	PointLight pointLight(assetManager.getVertexArrayObject("box"), lightMaterial);
 	pointLight.Scale = glm::vec3(0.2f, 0.2f, 0.2f);
 	pointLights.push_back(pointLight);
-	pointLight.Position.x -= 2.0;
 	pointLights.push_back(pointLight);
 
 	snowParticles = new ParticleSystem(100);
@@ -94,9 +98,7 @@ void display(GLFWwindow* window, float time, float deltaTime)
 		pointLight.Position.y = 2.0f * -sin(time);
 		pointLight.Position.z = 2.0f * cos(time) * pow(-1, i);
 		pointLight.updateModelMatrix();
-		pointLight.bind();
-		pointLight.updateShaderUniforms(viewProjection);
-		pointLight.draw();
+		pointLight.draw(viewProjection);
 	}
 
 	// Snow particles
@@ -111,15 +113,8 @@ void display(GLFWwindow* window, float time, float deltaTime)
 
 	for (GameObject& gameObject : gameObjects)
 	{
-		gameObject.bind();
 		gameObject.update(deltaTime);
-		gameObject.updateShaderUniforms(viewProjection);
-		gameObject.bindTextures();
-
-		Shader shader = gameObject.shader;
-		shader.setFloat("u_material.shininess", 32.0f);
-
-		gameObject.draw();
+		gameObject.draw(viewProjection);
 	}
 
 	glBindVertexArray(0);

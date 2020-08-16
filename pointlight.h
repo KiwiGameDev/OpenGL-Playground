@@ -17,8 +17,8 @@ public:
 	float Linear;
 	float Quadratic;
 
-	PointLight(const VertexArrayObject& vao, const Shader& shader)
-		: Drawable(vao, shader)
+	PointLight(const VertexArrayObject& vao, const Material& material)
+		: Drawable(vao, material)
 	{
 		Ambient = { 0.2f, 0.2f, 0.2f };
 		Diffuse = { 0.8f, 0.8f, 0.8f };
@@ -29,9 +29,14 @@ public:
 		Quadratic = 0.032f;
 	}
 
-	void updateShaderUniforms(const glm::mat4& viewProjection) const
+	void updateShaderUniforms(const Shader& shader, const glm::mat4& viewProjection) const
 	{
 		shader.setMat4("u_localToClip", getMVP(viewProjection));
+	}
+
+	void updateShaderUniforms(const Shader& shader) const
+	{
+		
 	}
 
 	void setOtherShaderUniforms(const Shader& shader, int index) const

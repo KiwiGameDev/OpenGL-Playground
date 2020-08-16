@@ -1,30 +1,38 @@
 #pragma once
-
 #include "vertexarrayobject.h"
-#include "shader.h"
+#include "material.h"
 
 class Drawable
 {
 public:
-	VertexArrayObject VAO;
-	Shader shader;
+	std::vector<VertexArrayObject> VAOs;
+	std::vector<Material> Materials;
 
-	Drawable()
-		: VAO(), shader() { }
+	Drawable() { }
 
-	Drawable(const VertexArrayObject& vao, const Shader& shader)
-		: VAO(vao), shader(shader) { }
+	Drawable(const VertexArrayObject& vaos, const Material& material)
+		: VAOs(std::vector<VertexArrayObject>() = { vaos }), Materials(std::vector<Material>() = { material }) { }
 
-	virtual void bind() const
-	{
-		VAO.bind();
-		shader.use();
-	}
-
-	virtual void updateShaderUniforms(const glm::mat4& viewProjection) const = 0;
+	Drawable(const std::vector<VertexArrayObject>& vaos, const std::vector<Material>& materials)
+		: VAOs(vaos), Materials(materials) { }
 	
-	void draw() const
+	void draw(const glm::mat4& viewProjection) const
 	{
-		VAO.draw();
+		for (int i = 0; i < VAOs.size(); i++)
+		{
+			const VertexArrayObject& vao = VAOs[i];
+			const Material& material = Materials[i];
+
+			vao.bind();
+			material.useShader();
+			updateShaderUniforms(material.getShader(), viewProjection);
+			updateShaderUniforms(material.getShader());
+			material.bind();
+			vao.draw();
+		}
 	}
+
+protected:
+	virtual void updateShaderUniforms(const Shader& shader, const glm::mat4& viewProjection) const = 0;
+	virtual void updateShaderUniforms(const Shader& shader) const = 0;
 };

@@ -14,7 +14,6 @@ class GameObject : public Transformable, public Drawable
 public:
 	glm::vec3 Velocity;
 	glm::vec3 RotationSpeed;
-	std::unordered_map<TextureType, Texture> textures;
 
 	GameObject()
 	{
@@ -22,8 +21,15 @@ public:
 		RotationSpeed = glm::vec3();
 	}
 
-	GameObject(const VertexArrayObject& vao, const Shader& shader)
-		: Drawable(vao, shader)
+	GameObject(const std::vector<VertexArrayObject>& vaos, const std::vector<Material>& materials)
+		: Drawable(vaos, materials)
+	{
+		Velocity = glm::vec3();
+		RotationSpeed = glm::vec3();
+	}
+
+	GameObject(const VertexArrayObject& vao, const Material& material)
+		: Drawable(vao, material)
 	{
 		Velocity = glm::vec3();
 		RotationSpeed = glm::vec3();
@@ -36,21 +42,14 @@ public:
 		updateModelMatrix();
 	}
 
-	void updateShaderUniforms(const glm::mat4& viewProjection) const
+	void updateShaderUniforms(const Shader& shader, const glm::mat4& viewProjection) const
 	{
 		shader.setMat4("u_model", Model);
 		shader.setMat4("u_localToClip", getMVP(viewProjection));
 	}
 
-	void addTexture(const Texture& texture)
+	void updateShaderUniforms(const Shader& shader) const
 	{
-		textures.insert(std::make_pair(texture.textureType, texture));
-	}
-
-	void bindTextures() const
-	{
-		int i = 0;
-		for (const auto& itr : textures)
-			itr.second.bindTexture(shader.ID, i++);
+		shader.setFloat("u_material.shininess", 32.0f);
 	}
 };

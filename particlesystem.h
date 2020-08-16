@@ -17,10 +17,12 @@ public:
 
 		VertexArrayObject quad = assetManager.getVertexArrayObject("Quad");
 		Shader particleShader = shaderManager.getShader("UnlitShader");
+		Material particleMaterial;
+		particleMaterial.setShader(particleShader);
 
 		for (int i = 0; i < size; i++)
 		{
-			particles.push_back(Particle(quad, particleShader));
+			particles.push_back(Particle(quad, particleMaterial));
 		}
 	}
 
@@ -34,9 +36,7 @@ public:
 	{
 		for (const Particle& particle : particles)
 		{
-			particle.bind();
-			particle.updateShaderUniforms(viewProjection);
-			particle.draw();
+			particle.draw(viewProjection);
 		}
 	}
 };
