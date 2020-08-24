@@ -47,9 +47,4 @@ public:
 		shader.setMat4("u_model", Model);
 		shader.setMat4("u_localToClip", getMVP(viewProjection));
 	}
-
-	void updateShaderUniforms(const Shader& shader) const
-	{
-		shader.setFloat("u_material.shininess", 32.0f);
-	}
 };

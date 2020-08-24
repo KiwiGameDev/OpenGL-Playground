@@ -22,7 +22,7 @@ public:
 
 	void updateShadersCommon(float time, glm::vec3 viewPos)
 	{
-		for (Shader& shader : mainShaders)
+		for (Shader& shader : lightingShaders)
 		{
 			shader.use();
 			shader.setFloat("u_time", time);
@@ -34,7 +34,7 @@ public:
 							   const std::vector<PointLight>& pointLights,
 							   const SpotLight& spotLight)
 	{
-		for (Shader& shader : mainShaders)
+		for (Shader& shader : lightingShaders)
 		{
 			shader.use();
 			dirLight.setOtherShaderUniforms(shader);
@@ -47,15 +47,21 @@ public:
 private:
 	ShaderManager()
 	{
-		Shader mainShader = Shader("lightingShader.vert", "lightingShader.frag");
-		Shader unlitShader = Shader("lightingShader.vert", "unlitShader.frag");
+		Shader textured = Shader("texturedShader.vert", "texturedShader.frag");
+		Shader untextured = Shader("untexturedShader.vert", "untexturedShader.frag");
+		Shader unlitShader = Shader("texturedShader.vert", "unlitShader.frag");
 		Shader skyboxShader = Shader("skyboxShader.vert", "skyboxShader.frag");
 
-		mainShaders.push_back(mainShader);
+		lightingShaders.push_back(textured);
+		lightingShaders.push_back(untextured);
 
 		shaderMap.insert(std::make_pair(
-			"DefaultShader",
-			mainShader
+			"TexturedShader",
+			textured
+		));
+		shaderMap.insert(std::make_pair(
+			"UntexturedShader",
+			untextured
 		));
 		shaderMap.insert(std::make_pair(
 			"UnlitShader",
@@ -68,7 +74,7 @@ private:
 	}
 
 	std::unordered_map<std::string, Shader> shaderMap;
-	std::vector<Shader> mainShaders;
+	std::vector<Shader> lightingShaders;
 
 public:
 	ShaderManager(ShaderManager const&) = delete;

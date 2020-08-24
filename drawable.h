@@ -20,13 +20,13 @@ public:
 	{
 		for (int i = 0; i < VAOs.size(); i++)
 		{
-			const VertexArrayObject& vao = VAOs[i];
-			const Material& material = Materials[i];
+			const VertexArrayObject& vao = VAOs.at(i);
+			const Material& material = Materials.at(i);
 
 			vao.bind();
 			material.useShader();
+			material.setMaterialUniforms();
 			updateShaderUniforms(material.getShader(), viewProjection);
-			updateShaderUniforms(material.getShader());
 			material.bind();
 			vao.draw();
 		}
@@ -34,5 +34,4 @@ public:
 
 protected:
 	virtual void updateShaderUniforms(const Shader& shader, const glm::mat4& viewProjection) const = 0;
-	virtual void updateShaderUniforms(const Shader& shader) const = 0;
 };

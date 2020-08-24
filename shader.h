@@ -101,7 +101,7 @@ public:
         glUniform1f(glGetUniformLocation(ID, name), value);
     }
 
-    void setVec2(const char* name, float value[2]) const
+    void setVec2(const char* name, const float value[2]) const
     {
         glUniform2fv(glGetUniformLocation(ID, name), 1, value);
     }
@@ -111,7 +111,7 @@ public:
         glUniform2f(glGetUniformLocation(ID, name), x, y);
     }
 
-    void setVec3(const char* name, float value[3]) const
+    void setVec3(const char* name, const float value[3]) const
     {
         glUniform3fv(glGetUniformLocation(ID, name), 1, value);
     }

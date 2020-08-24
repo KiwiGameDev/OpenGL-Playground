@@ -23,12 +23,6 @@
     <None Include="camera.h">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="lightingShader.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="lightingShader.vert">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="oldShader.frag">
       <Filter>Resource Files</Filter>
     </None>
@@ -42,6 +36,18 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="unlitShader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="texturedShader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="texturedShader.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="untexturedShader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="untexturedShader.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

@@ -158,10 +158,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="camera.h" />
+    <None Include="untexturedShader.frag" />
+    <None Include="untexturedShader.vert" />
     <None Include="oldShader.frag" />
     <None Include="unlitShader.frag" />
-    <None Include="lightingShader.frag" />
-    <None Include="lightingShader.vert" />
+    <None Include="texturedShader.frag" />
+    <None Include="texturedShader.vert" />
     <None Include="oldShader.vert" />
     <None Include="skyboxShader.frag" />
     <None Include="skyboxShader.vert" />

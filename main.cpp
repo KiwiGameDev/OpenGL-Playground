@@ -25,6 +25,8 @@ Shader mainShader;
 
 ParticleSystem* snowParticles;
 std::vector<GameObject> gameObjects;
+
+// Lights
 DirectionalLight directionalLight;
 std::vector<PointLight> pointLights;
 SpotLight spotLight;
@@ -37,11 +39,12 @@ void init(GLFWwindow* window)
 	// Load shaders
 	ShaderManager& shaderManager = ShaderManager::getInstance();
 	unlitShader = shaderManager.getShader("UnlitShader");
-	mainShader = shaderManager.getShader("DefaultShader");
+	mainShader = shaderManager.getShader("TexturedShader");
 
 	// Load assets
 	AssetManager& assetManager = AssetManager::getInstance();
 
+	// Create materials
 	Material boxMaterial;
 	boxMaterial.setTexture(assetManager.getTexture("brickwall.jpg"));
 	boxMaterial.setTexture(assetManager.getTexture("brickwall_normal.jpg"));
@@ -52,13 +55,22 @@ void init(GLFWwindow* window)
 	lightMaterial.setShader(unlitShader);
 
 	// Load gameobjects
-	GameObject box = GameObject(assetManager.getVertexArrayObject("box"), boxMaterial);
-	
-	box.RotationSpeed = glm::vec3(0.0f, 0.5f, 0.0f);
-	gameObjects.push_back(box);
+	// GameObject box = GameObject(assetManager.getVertexArrayObject("box"), boxMaterial);
+	// box.RotationSpeed = glm::vec3(0.0f, 0.5f, 0.0f);
+	// gameObjects.push_back(box);
+
+	GameObject box = assetManager.getGameObject("box");
 	box.Position = glm::vec3(-4.0f, 4.0f, 0.0f);
 	box.RotationSpeed = glm::vec3(0.25f, 0.5f, 0.75f);
 	gameObjects.push_back(box);
+	
+	GameObject tank = assetManager.getGameObject("tank");
+	gameObjects.push_back(tank);
+
+	GameObject snake = assetManager.getGameObject("solid_snake");
+	snake.Scale = glm::vec3(0.01f, 0.01f, 0.01f);
+	snake.Position = glm::vec3(0, 0, 2.0f);
+	gameObjects.push_back(snake);
 
 	// Load lights
 	PointLight pointLight(assetManager.getVertexArrayObject("box"), lightMaterial);
@@ -97,13 +109,7 @@ void display(GLFWwindow* window, float time, float deltaTime)
 		pointLight.Position.x = 2.0f * sin(time) * pow(-1, i);
 		pointLight.Position.y = 2.0f * -sin(time);
 		pointLight.Position.z = 2.0f * cos(time) * pow(-1, i);
-		pointLight.updateModelMatrix();
-		pointLight.draw(viewProjection);
 	}
-
-	// Snow particles
-	snowParticles->update(deltaTime);
-	snowParticles->draw(viewProjection);
 
 	// Spot light
 	spotLight.Position = camera->Position;
@@ -111,10 +117,21 @@ void display(GLFWwindow* window, float time, float deltaTime)
 
 	ShaderManager::getInstance().updateShadersLighting(directionalLight, pointLights, spotLight);
 
+	// Snow particles
+	snowParticles->update(deltaTime);
+	snowParticles->draw(viewProjection);
+
 	for (GameObject& gameObject : gameObjects)
 	{
 		gameObject.update(deltaTime);
+		gameObject.updateModelMatrix();
 		gameObject.draw(viewProjection);
+	}
+
+	for (PointLight& pointLight : pointLights)
+	{
+		pointLight.updateModelMatrix();
+		pointLight.draw(viewProjection);
 	}
 
 	glBindVertexArray(0);
