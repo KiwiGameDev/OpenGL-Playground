@@ -938,11 +938,12 @@ bool MaterialFileReader::operator()(const std::string &matId,
                                     std::string &err) {
   std::string filepath;
 
-  if (!m_mtlBasePath.empty()) {
+  /*if (!m_mtlBasePath.empty()) {
     filepath = std::string(m_mtlBasePath) + matId;
   } else {
     filepath = matId;
-  }
+  }*/
+    filepath = std::string(m_mtlBasePath);
 
   std::ifstream matIStream(filepath.c_str());
   LoadMtl(matMap, materials, matIStream);
