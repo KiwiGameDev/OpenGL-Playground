@@ -72,12 +72,12 @@ public:
 private:
 	const std::vector<std::string> cubemapFilepaths =
 	{
-		"assets/cubemap/right.jpg",
-		"assets/cubemap/left.jpg",
-		"assets/cubemap/top.jpg",
-		"assets/cubemap/bottom.jpg",
-		"assets/cubemap/front.jpg",
-		"assets/cubemap/back.jpg"
+		"assets/cubemap/px.png",
+		"assets/cubemap/nx.png",
+		"assets/cubemap/py.png",
+		"assets/cubemap/ny.png",
+		"assets/cubemap/pz.png",
+		"assets/cubemap/nz.png"
 	};
 
 	std::unordered_map<std::string, GameObject> gameObjects;
@@ -211,10 +211,10 @@ private:
 		// Quad
 		std::vector<float> pos =
 		{
-			-1.0f, -1.0f, 0.0f,
-			 1.0f, -1.0f, 0.0f,
-			-1.0f,  1.0f, 0.0f,
-			 1.0f,  1.0f, 0.0f
+			-0.5f, -0.5f, 0.0f,
+			 0.5f, -0.5f, 0.0f,
+			-0.5f,  0.5f, 0.0f,
+			 0.5f,  0.5f, 0.0f
 		};
 		std::vector<float> norm =
 		{

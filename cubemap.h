@@ -34,11 +34,11 @@ public:
 			{
 				glTexImage2D(
 					GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-					0, GL_RGB,
+					0, image.glChannels,
 					image.width,
 					image.height,
 					0,
-					GL_RGB,
+					image.glChannels,
 					GL_UNSIGNED_BYTE,
 					image.data
 				);
