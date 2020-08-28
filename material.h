@@ -69,11 +69,11 @@ public:
 	void bind() const
 	{
 		if (diffuseTexture.ID != 4096)
+		{
 			diffuseTexture.bindTexture(shader.ID, 0);
-		if (normalTexture.ID != 4096)
 			normalTexture.bindTexture(shader.ID, 1);
-		if (specularTexture.ID != 4096)
 			specularTexture.bindTexture(shader.ID, 2);
+		}
 	}
 
 private:

@@ -39,23 +39,27 @@ public:
 		glTexImage2D(
 			GL_TEXTURE_2D,
 			0,
-			GL_RGB,
+			img.format,
 			img.width,
 			img.height,
 			0,
-			img.glChannels,
+			img.format,
 			GL_UNSIGNED_BYTE,
 			img.data
 		);
+		GLenum err;
+		while ((err = glGetError()) != GL_NO_ERROR) {
+			std::cerr << err << "\n";
+		}
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 
-	void bindTexture(unsigned int shaderID, int samplerID) const
+	void bindTexture(unsigned int shaderID, int textureTypeID) const
 	{
 		std::string textureName(ShaderUniforms[(int)textureType]);
 		GLint textureLoc = glGetUniformLocation(shaderID, textureName.c_str());
-		glUniform1i(textureLoc, samplerID);
-		glActiveTexture(GL_TEXTURE0 + samplerID);
+		glUniform1i(textureLoc, textureTypeID);
+		glActiveTexture(GL_TEXTURE0 + textureTypeID);
 		glBindTexture(GL_TEXTURE_2D, ID);
 	}
 

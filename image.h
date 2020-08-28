@@ -10,19 +10,21 @@ struct Image
 	int width;
 	int height;
 	int channelCount;
-	int glChannels;
+	int format;
 
 	Image(const std::string& filePath, bool flipVertically = true)
 	{
 		stbi_set_flip_vertically_on_load(flipVertically);
 		data = stbi_load(filePath.c_str(), &width, &height, &channelCount, 0);
-
-		if (channelCount == 3)
-			glChannels = GL_RGB;
+		
+		if (channelCount == 1)
+			format = GL_RED;
+		else if (channelCount == 2)
+			format = GL_RG;
+		else if (channelCount == 3)
+			format = GL_RGB;
 		else if (channelCount == 4)
-			glChannels = GL_RGBA;
-		else
-			glChannels = 0;
+			format = GL_RGBA;
 	}
 
 	~Image()

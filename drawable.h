@@ -26,8 +26,8 @@ public:
 			vao.bind();
 			material.useShader();
 			material.setMaterialUniforms();
-			updateShaderUniforms(material.getShader(), viewProjection);
 			material.bind();
+			updateShaderUniforms(material.getShader(), viewProjection);
 			vao.draw();
 		}
 	}

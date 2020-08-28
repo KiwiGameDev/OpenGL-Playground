@@ -45,24 +45,31 @@ void init(GLFWwindow* window)
 	AssetManager& assetManager = AssetManager::getInstance();
 
 	// Create materials
-	Material boxMaterial;
-	boxMaterial.setTexture(assetManager.getTexture("brickwall.jpg"));
-	boxMaterial.setTexture(assetManager.getTexture("brickwall_normal.jpg"));
-	boxMaterial.setTexture(assetManager.getTexture("brickwall_specular.jpg"));
-	boxMaterial.setShader(mainShader);
-
 	Material lightMaterial;
 	lightMaterial.setShader(unlitShader);
 
 	// Load gameobjects
-	// GameObject box = GameObject(assetManager.getVertexArrayObject("box"), boxMaterial);
-	// box.RotationSpeed = glm::vec3(0.0f, 0.5f, 0.0f);
-	// gameObjects.push_back(box);
+	GameObject gate = assetManager.getGameObject("gate");
+	gate.Position = glm::vec3(-1.0f, 0, 1.0f);
+	gameObjects.push_back(gate);
 
-	GameObject box = assetManager.getGameObject("box");
-	box.Position = glm::vec3(-4.0f, 4.0f, 0.0f);
-	box.RotationSpeed = glm::vec3(0.25f, 0.5f, 0.75f);
-	gameObjects.push_back(box);
+	GameObject ground = assetManager.getGameObject("ground");
+	gameObjects.push_back(ground);
+
+	GameObject crate = assetManager.getGameObject("crate");
+	crate.Position = glm::vec3(-1.0f, 0, 0);
+	gameObjects.push_back(crate);
+
+	GameObject barrel = assetManager.getGameObject("barrel");
+	barrel.Position = glm::vec3(0, 0, 3.0f);
+	gameObjects.push_back(barrel);
+
+	GameObject drone = assetManager.getGameObject("drone");
+	drone.Position = glm::vec3(1.0f, 1.0f, 0);
+	gameObjects.push_back(drone);
+
+	GameObject hud = assetManager.getGameObject("hud");
+	gameObjects.push_back(hud);
 	
 	GameObject tank = assetManager.getGameObject("tank");
 	gameObjects.push_back(tank);
