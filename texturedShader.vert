@@ -20,7 +20,7 @@ void main()
 
     vec3 T = normalize(vec3(u_model * vec4(v_tangent, 0.0)));
     vec3 N = normalize(vec3(u_model * vec4(v_normal,  0.0)));
-    vec3 B = -cross(N, T);
+    vec3 B = cross(N, T);
 
     TBN = mat3(T, B, N);
 } 

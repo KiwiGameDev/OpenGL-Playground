@@ -25,9 +25,9 @@ public:
 	}
 
 	VertexArrayObject(const std::vector<float>& pos,
-					  const std::vector<float>& norm,
-					  const std::vector<float>& tex,
-					  const std::vector<unsigned int>& indices)
+		const std::vector<float>& norm,
+		const std::vector<float>& tex,
+		const std::vector<unsigned int>& indices)
 		: VertexArrayObject()
 	{
 		glGenVertexArrays(1, &ID);
@@ -39,19 +39,22 @@ public:
 
 		if (pos.size() > 0 && tex.size() > 0)
 		{
-			std::vector<glm::vec3> tangents;
+			std::vector<glm::vec3> tangents(norm.size() / 3);
+			std::vector<glm::vec3> bitangents(norm.size() / 3);
 
-			for (int i = 0; i < pos.size() / 9; i++)
+			for (int i = 0; i < indices.size(); i += 3)
 			{
-				int j = i * 9;
-				glm::vec3 pos1 = glm::vec3(pos[j + 0], pos[j + 1], pos[j + 2]);
-				glm::vec3 pos2 = glm::vec3(pos[j + 3], pos[j + 4], pos[j + 5]);
-				glm::vec3 pos3 = glm::vec3(pos[j + 6], pos[j + 7], pos[j + 8]);
+				int v1 = indices[i+0];
+				int v2 = indices[i+1];
+				int v3 = indices[i+2];
 
-				j = i * 6;
-				glm::vec2 uv1 = glm::vec2(tex[j + 0], tex[j + 1]);
-				glm::vec2 uv2 = glm::vec2(tex[j + 2], tex[j + 3]);
-				glm::vec2 uv3 = glm::vec2(tex[j + 4], tex[j + 5]);
+				glm::vec3 pos1 = glm::vec3(pos[v1], pos[v1 + 1], pos[v1 + 2]);
+				glm::vec3 pos2 = glm::vec3(pos[v2], pos[v2 + 1], pos[v2 + 2]);
+				glm::vec3 pos3 = glm::vec3(pos[v3], pos[v3 + 1], pos[v3 + 2]);
+
+				glm::vec2 uv1 = glm::vec2(tex[v1], tex[v1 + 1]);
+				glm::vec2 uv2 = glm::vec2(tex[v2], tex[v2 + 1]);
+				glm::vec2 uv3 = glm::vec2(tex[v3], tex[v3 + 1]);
 
 				// Edges of the triangle : position delta
 				glm::vec3 deltaPos1 = pos2 - pos1;
@@ -61,12 +64,37 @@ public:
 				glm::vec2 deltaUV1 = uv2 - uv1;
 				glm::vec2 deltaUV2 = uv3 - uv1;
 
-				float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
-				glm::vec3 tangent = deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y * r;
+				float dirCorrection = (deltaUV2.x * deltaUV1.y - deltaUV2.y * deltaUV1.x) < 0.0f ? -1.0f : 1.0f;
 
-				tangents.push_back(tangent);
-				tangents.push_back(tangent);
-				tangents.push_back(tangent);
+				if (deltaUV1.x * deltaUV2.y == deltaUV1.y * deltaUV2.x)
+				{
+					deltaUV1.x = 0.0;
+					deltaUV1.y = 1.0;
+					deltaUV2.x = 1.0;
+					deltaUV2.y = 0.0;
+				}
+
+				float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+				glm::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * (r * dirCorrection);
+				glm::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
+
+				tangents[v1] = (tangents[v1] * 1.05f) + tangent;
+				tangents[v2] = (tangents[v2] * 1.05f) + tangent;
+				tangents[v3] = (tangents[v3] * 1.05f) + tangent;
+				bitangents[v1] += bitangent;
+				bitangents[v2] += bitangent;
+				bitangents[v3] += bitangent;
+			}
+
+			std::vector<glm::vec3> outTangents(norm.size() / 3);
+
+			for (long i = 0; i < pos.size(); i += 3)
+			{
+				const glm::vec3& n = glm::vec3(pos[i + 0], pos[i + 1], pos[i + 2]);
+				const glm::vec3& t = tangents[i / 3];
+
+				// Gram-Schmidt orthogonalize
+				outTangents[i / 3] = glm::normalize(t - n * glm::dot(n, t));
 			}
 
 			generateBufferLayout(VertexTangentsID, tangents, 3, 3);
@@ -101,5 +129,15 @@ private:
 		glBufferData(GL_ARRAY_BUFFER, buffer.size() * sizeof(T), &buffer[0], GL_STATIC_DRAW);
 		glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(location);
+	}
+
+	bool isSimilar(glm::vec3 v1, glm::vec3 v2)
+	{
+		return (v1.x * v2.x + v1.y * v2.y + v1.z * v2.z) < 0.001f;
+	}
+
+	bool isSimilar(glm::vec2 v1, glm::vec2 v2)
+	{
+		return (v1.x * v2.x + v1.y * v2.y) < 0.001f;
 	}
 };

@@ -13,9 +13,9 @@ public:
 
 	DirectionalLight()
 	{
-		Direction = glm::vec3(-0.2f, -1.0f, -0.3f);
-		Ambient = glm::vec3(0.0f, 0.0f, 0.0f);
-		Diffuse = glm::vec3(0.8f, 0.8f, 0.8f);
+		Direction = glm::vec3(-0.2f, -1.0f, 0.3f);
+		Ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+		Diffuse = glm::vec3(0.6f, 0.6f, 0.6f);
 		Specular = glm::vec3(1.0f, 1.0f, 1.0f);
 	}
 

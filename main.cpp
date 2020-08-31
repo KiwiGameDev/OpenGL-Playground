@@ -48,41 +48,11 @@ void init(GLFWwindow* window)
 	Material lightMaterial;
 	lightMaterial.setShader(unlitShader);
 
-	// Load gameobjects
-	GameObject gate = assetManager.getGameObject("gate");
-	gate.Position = glm::vec3(-1.0f, 0, 1.0f);
-	gameObjects.push_back(gate);
+	GameObject scene = assetManager.getGameObject("scene");
+	gameObjects.push_back(scene);
 
-	GameObject ground = assetManager.getGameObject("ground");
-	gameObjects.push_back(ground);
-
-	GameObject crate = assetManager.getGameObject("crate");
-	crate.Position = glm::vec3(-1.0f, 0, 0);
-	gameObjects.push_back(crate);
-
-	GameObject barrel = assetManager.getGameObject("barrel");
-	barrel.Position = glm::vec3(0, 0, 3.0f);
-	gameObjects.push_back(barrel);
-
-	GameObject drone = assetManager.getGameObject("drone");
-	drone.Position = glm::vec3(1.0f, 1.0f, 0);
-	gameObjects.push_back(drone);
-
-	GameObject hud = assetManager.getGameObject("hud");
-	gameObjects.push_back(hud);
-	
-	GameObject tank = assetManager.getGameObject("tank");
-	gameObjects.push_back(tank);
-
-	GameObject snake = assetManager.getGameObject("solid_snake");
-	snake.Scale = glm::vec3(0.01f, 0.01f, 0.01f);
-	snake.Position = glm::vec3(0, 0, 2.0f);
-	gameObjects.push_back(snake);
-
-	// Load lights
 	PointLight pointLight(assetManager.getVertexArrayObject("box"), lightMaterial);
 	pointLight.Scale = glm::vec3(0.2f, 0.2f, 0.2f);
-	pointLights.push_back(pointLight);
 	pointLights.push_back(pointLight);
 
 	snowParticles = new ParticleSystem(100);
@@ -108,15 +78,6 @@ void display(GLFWwindow* window, float time, float deltaTime)
 	glm::mat4 skyboxMVP = projection * skyboxView;
 	CubeMap skybox = AssetManager::getInstance().getCubeMap("MainCubeMap");
 	skybox.draw(skyboxMVP);
-
-	// Point lights
-	for (int i = 0; i < pointLights.size(); i++)
-	{
-		PointLight& pointLight = pointLights[i];
-		pointLight.Position.x = 2.0f * sin(time) * pow(-1, i);
-		pointLight.Position.y = 2.0f * -sin(time);
-		pointLight.Position.z = 2.0f * cos(time) * pow(-1, i);
-	}
 
 	// Spot light
 	spotLight.Position = camera->Position;

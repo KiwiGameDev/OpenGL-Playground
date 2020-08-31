@@ -51,7 +51,7 @@ struct SpotLight
     float quadratic;
 };
 
-#define NR_POINT_LIGHTS 2
+#define NR_POINT_LIGHTS 1
 
 uniform Material u_material;
 uniform DirLight u_dirLight;
@@ -84,6 +84,7 @@ void main()
     result += CalcSpotLight(u_spotLight, norm, WorldPos, viewDir);
 
     fragColor = vec4(result, 1.0);
+    //fragColor = vec4(TBN[0], 1.0);
 }
 
 vec3 CalcDirLight(DirLight light, vec3 norm, vec3 viewDir)

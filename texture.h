@@ -47,10 +47,6 @@ public:
 			GL_UNSIGNED_BYTE,
 			img.data
 		);
-		GLenum err;
-		while ((err = glGetError()) != GL_NO_ERROR) {
-			std::cerr << err << "\n";
-		}
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 
