@@ -17,8 +17,8 @@
 #include "shadermanager.h"
 #include "particlesystem.h"
 
-#define WIDTH 800
-#define HEIGHT 800
+#define WIDTH 1280
+#define HEIGHT 720
 
 Shader unlitShader;
 Shader mainShader;
@@ -31,8 +31,9 @@ DirectionalLight directionalLight;
 std::vector<PointLight> pointLights;
 SpotLight spotLight;
 
-Camera* camera = new CameraPerspective((float)WIDTH / (float)HEIGHT, glm::vec3(0, 0, 5.0f));
-//Camera* camera = new CameraOrthographic({ WIDTH * 0.01f, HEIGHT * 0.01f }, glm::vec3(0, 0, 5.0f));
+Camera* perspectiveCamera = new CameraPerspective((float)WIDTH / (float)HEIGHT, glm::vec3(0, 0, 5.0f));
+Camera* orthoCamera = new CameraOrthographic({ WIDTH * 0.01f, HEIGHT * 0.01f }, glm::vec3(0, 0, 5.0f));
+Camera* camera = perspectiveCamera;
 
 void init(GLFWwindow* window)
 {
@@ -49,10 +50,16 @@ void init(GLFWwindow* window)
 	lightMaterial.setShader(unlitShader);
 
 	GameObject scene = assetManager.getGameObject("scene");
+	for (Material& mat : scene.Materials)
+		mat.Shininess = 1.0f;
 	gameObjects.push_back(scene);
 
-	PointLight pointLight(assetManager.getVertexArrayObject("box"), lightMaterial);
-	pointLight.Scale = glm::vec3(0.2f, 0.2f, 0.2f);
+	PointLight pointLight;
+	pointLight.Position = glm::vec3(-1.385f, 2.267f, 3.076f);
+	pointLights.push_back(pointLight);
+	pointLight.Position = glm::vec3(-2.403f, 2.268f, 4.278f);
+	pointLights.push_back(pointLight);
+	pointLight.Position = glm::vec3(-3.9951f, 2.3591f, 6.4063f);
 	pointLights.push_back(pointLight);
 
 	snowParticles = new ParticleSystem(100);
@@ -96,14 +103,23 @@ void display(GLFWwindow* window, float time, float deltaTime)
 		gameObject.draw(viewProjection);
 	}
 
-	for (PointLight& pointLight : pointLights)
-	{
-		pointLight.updateModelMatrix();
-		pointLight.draw(viewProjection);
-	}
-
 	glBindVertexArray(0);
 	glUseProgram(0);
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (key == GLFW_KEY_F && action == GLFW_PRESS)
+	{
+		if (camera == perspectiveCamera)
+		{
+			camera = orthoCamera;
+		}
+		else
+		{
+			camera = perspectiveCamera;
+		}
+	}
 }
 
 void processKeyInput(GLFWwindow* window, float deltaTime)
@@ -160,6 +176,7 @@ int main(void)
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(window, mouseCallback);
 	glfwSetScrollCallback(window, scrollCallback);
+	glfwSetKeyCallback(window, key_callback);
 
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.25f, 0.25f, 0.25f, 1.0f);

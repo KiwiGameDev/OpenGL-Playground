@@ -6,7 +6,7 @@
 #include "drawable.h"
 #include "vertexarrayobject.h"
 
-class PointLight : public Transformable, public Drawable
+class PointLight : public Transformable
 {
 public:
 	glm::vec3 Ambient;
@@ -17,26 +17,15 @@ public:
 	float Linear;
 	float Quadratic;
 
-	PointLight(const VertexArrayObject& vao, const Material& material)
-		: Drawable(vao, material)
+	PointLight()
 	{
-		Ambient = { 0.2f, 0.2f, 0.2f };
-		Diffuse = { 0.8f, 0.8f, 0.8f };
-		Specular = { 1.0f, 1.0f, 1.0f };
+		Ambient = { 0.1f, 0.1f, 0.1f };
+		Diffuse = { 0.3f, 0.3f, 0.3f };
+		Specular = { 0.7f, 0.7f, 0.7f };
 
 		Constant = 1.0f;
 		Linear = 0.09f;
 		Quadratic = 0.032f;
-	}
-
-	void updateShaderUniforms(const Shader& shader, const glm::mat4& viewProjection) const
-	{
-		shader.setMat4("u_localToClip", getMVP(viewProjection));
-	}
-
-	void updateShaderUniforms(const Shader& shader) const
-	{
-		
 	}
 
 	void setOtherShaderUniforms(const Shader& shader, int index) const

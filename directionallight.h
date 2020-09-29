@@ -14,9 +14,9 @@ public:
 	DirectionalLight()
 	{
 		Direction = glm::vec3(-0.2f, -1.0f, 0.3f);
-		Ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-		Diffuse = glm::vec3(0.6f, 0.6f, 0.6f);
-		Specular = glm::vec3(1.0f, 1.0f, 1.0f);
+		Ambient = glm::vec3(0.1f, 0.1f, 0.1f);
+		Diffuse = glm::vec3(0.2f, 0.2f, 0.2f);
+		Specular = glm::vec3(0.2f, 0.2f, 0.2f);
 	}
 
 	void setOtherShaderUniforms(Shader shader) const

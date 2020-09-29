@@ -130,14 +130,4 @@ private:
 		glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(location);
 	}
-
-	bool isSimilar(glm::vec3 v1, glm::vec3 v2)
-	{
-		return (v1.x * v2.x + v1.y * v2.y + v1.z * v2.z) < 0.001f;
-	}
-
-	bool isSimilar(glm::vec2 v1, glm::vec2 v2)
-	{
-		return (v1.x * v2.x + v1.y * v2.y) < 0.001f;
-	}
 };

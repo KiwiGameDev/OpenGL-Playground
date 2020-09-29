@@ -16,13 +16,25 @@ public:
 	Particle(const VertexArrayObject& vao, const Material& material)
 		: Drawable(std::vector<VertexArrayObject>() = { vao }, std::vector<Material>() = { material })
 	{
-		Velocity = glm::vec3(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
+		Position = glm::vec3(randf() * 8.0f + 2.0f, randf() * 8.0f - 4.0f, -randf() * 12.0f);
+		Velocity = glm::vec3(-1.0f + -randf() * 2.0f, randf() * -1.0f, randf() * 2.0f);
 		RotationSpeed = glm::vec3(randf() * 0.5f - 0.25f, randf() * 0.5f - 0.25f, randf() * 0.5f - 0.25f);
 		Scale = glm::vec3(0.1f, 0.1f, 0.1f);
+		lifetime = randf() * 5.0f + 5;
+		timer = 0;
 	}
 
 	void update(float deltaTime)
 	{
+		timer += deltaTime;
+		if (timer >= lifetime)
+		{
+			Position = glm::vec3(randf() * 8.0f + 2.0f, randf() * 8.0f - 4.0f, -randf() * 12.0f);
+			Velocity = glm::vec3(-1.0f + -randf() * 2.0f, randf() * -1.0f, randf() * 2.0f);
+			lifetime = randf() * 5.0f + 5.0f;
+			timer = 0;
+		}
+
 		Position += Velocity * deltaTime;
 		Rotation += RotationSpeed * deltaTime;
 		updateModelMatrix();
@@ -38,4 +50,8 @@ public:
 	{
 
 	}
+
+private:
+	float timer;
+	float lifetime;
 };
